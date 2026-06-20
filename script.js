@@ -49,17 +49,19 @@ function updateCanvas() {
         els.captureArea.style.height = "auto";
         els.captureArea.style.maxHeight = "none";
         els.captureArea.style.margin = "auto";
-    } else {
+      } else {
         const [wStr, hStr] = ratio.split(":");
         const w = parseInt(wStr),
             h = parseInt(hStr);
-                els.captureArea.style.width = "600px";
-        els.captureArea.style.aspectRatio = `${w} / ${h}`;
-        void els.captureArea.offsetHeight;
-        els.captureArea.style.maxHeight = "100%";
-        els.captureArea.style.margin = "";
-
+        const targetWidth = Math.min(600, els.captureArea.parentElement.clientWidth || 600, 420);
+        const targetHeight = Math.round((targetWidth * h) / w);
+        els.captureArea.style.aspectRatio = "";
+        els.captureArea.style.width = `${targetWidth}px`;
+        els.captureArea.style.height = `${targetHeight}px`;
+        els.captureArea.style.maxHeight = "none";
+        els.captureArea.style.margin = "0 auto";
     }
+
 
     els.captureArea.style.padding = `${els.paddingY.value}px ${els.paddingX.value}px`;
 
