@@ -53,10 +53,12 @@ function updateCanvas() {
         const [wStr, hStr] = ratio.split(":");
         const w = parseInt(wStr),
             h = parseInt(hStr);
-        els.captureArea.style.width = "600px";
+                els.captureArea.style.width = "600px";
         els.captureArea.style.aspectRatio = `${w} / ${h}`;
+        void els.captureArea.offsetHeight;
         els.captureArea.style.maxHeight = "100%";
         els.captureArea.style.margin = "";
+
     }
 
     els.captureArea.style.padding = `${els.paddingY.value}px ${els.paddingX.value}px`;
