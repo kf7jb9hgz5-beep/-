@@ -49,19 +49,21 @@ function updateCanvas() {
         els.captureArea.style.height = "auto";
         els.captureArea.style.maxHeight = "none";
         els.captureArea.style.margin = "auto";
-      } else {
+    } else {
         const [wStr, hStr] = ratio.split(":");
         const w = parseInt(wStr),
             h = parseInt(hStr);
         const targetWidth = Math.min(600, els.captureArea.parentElement.clientWidth || 600, 420);
         const targetHeight = Math.round((targetWidth * h) / w);
         els.captureArea.style.aspectRatio = "";
+        els.captureArea.style.maxWidth = "none";
         els.captureArea.style.width = `${targetWidth}px`;
         els.captureArea.style.height = `${targetHeight}px`;
         els.captureArea.style.maxHeight = "none";
         els.captureArea.style.margin = "0 auto";
+        els.captureArea.dataset.fixedRatioW = w;
+        els.captureArea.dataset.fixedRatioH = h;
     }
-
 
     els.captureArea.style.padding = `${els.paddingY.value}px ${els.paddingX.value}px`;
 
@@ -195,12 +197,42 @@ function updateCanvas() {
         }
     }
 
+    if (ratio !== "free") {
+        fitCanvasToContent();
+    }
+
     if (typeof syncLiveHighlights === "function") {
         try {
             syncLiveHighlights();
         } catch (e) {
             console.warn("하이라이트 싱크 중 경고 발생:", e);
         }
+    }
+}
+
+function fitCanvasToContent() {
+    const area = els.captureArea;
+    const w = parseFloat(area.dataset.fixedRatioW);
+    const h = parseFloat(area.dataset.fixedRatioH);
+    if (!w || !h) return;
+
+    const contentEl = document.getElementById("canvasContentContainer");
+    if (!contentEl) return;
+
+    let guard = 0;
+    while (guard < 15) {
+        const availableHeight = contentEl.clientHeight;
+        const neededHeight = contentEl.scrollHeight;
+        if (neededHeight <= availableHeight + 1) break;
+
+        const scale = neededHeight / availableHeight;
+        const currentWidth = area.getBoundingClientRect().width;
+        const newWidth = currentWidth * scale;
+        const newHeight = Math.round((newWidth * h) / w);
+
+        area.style.width = `${newWidth}px`;
+        area.style.height = `${newHeight}px`;
+        guard++;
     }
 }
 
