@@ -216,24 +216,28 @@ function fitCanvasToContent() {
     const h = parseFloat(area.dataset.fixedRatioH);
     if (!w || !h) return;
 
-    const contentEl = document.getElementById("canvasContentContainer");
-    if (!contentEl) return;
-
+    let width = parseFloat(area.style.width) || area.getBoundingClientRect().width;
     let guard = 0;
-    while (guard < 15) {
-        const availableHeight = contentEl.clientHeight;
-        const neededHeight = contentEl.scrollHeight;
-        if (neededHeight <= availableHeight + 1) break;
 
-        const scale = neededHeight / availableHeight;
-        const currentWidth = area.getBoundingClientRect().width;
-        const newWidth = currentWidth * scale;
-        const newHeight = Math.round((newWidth * h) / w);
+    while (guard < 20) {
+        const targetHeight = (width * h) / w;
 
-        area.style.width = `${newWidth}px`;
-        area.style.height = `${newHeight}px`;
+        area.style.height = "auto";
+        area.style.maxHeight = "none";
+        const naturalHeight = area.scrollHeight;
+
+        if (naturalHeight <= targetHeight + 1) {
+            area.style.width = `${Math.round(width)}px`;
+            area.style.height = `${Math.round(targetHeight)}px`;
+            return;
+        }
+
+        width = width * (naturalHeight / targetHeight);
         guard++;
     }
+
+    area.style.width = `${Math.round(width)}px`;
+    area.style.height = `${Math.round((width * h) / w)}px`;
 }
 
 function applySmartHighlighting(container) {
