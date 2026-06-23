@@ -219,32 +219,20 @@ function fitTextToCanvas() {
     const textWrapper = document.getElementById("canvasTextWrapper");
     if (!textWrapper) return;
 
-    const baseFontSize = parseFloat(els.fontSize.value) || 16;
-    const baseLineHeight = parseFloat(els.lineHeight.value) || baseFontSize * 1.4;
-    const baseLetterSpacing = parseFloat(els.letterSpacing.value) || 0;
-
     const width = area.getBoundingClientRect().width || parseFloat(area.style.width) || 420;
     const targetHeight = (width * h) / w;
 
-    let scale = 1;
-    let guard = 0;
-    const minScale = 0.08;
+    area.style.height = "auto";
+    area.style.maxHeight = "none";
+    const naturalHeight = area.scrollHeight;
 
-    while (guard < 10) {
-        textWrapper.style.fontSize = `${baseFontSize * scale}px`;
-        textWrapper.style.lineHeight = `${baseLineHeight * scale}px`;
-        textWrapper.style.letterSpacing = `${baseLetterSpacing * scale}px`;
-
-        area.style.height = "auto";
-        area.style.maxHeight = "none";
-        const naturalHeight = area.scrollHeight;
-
-        if (naturalHeight <= targetHeight + 1) break;
-        if (scale <= minScale) break;
-
-        scale = Math.max(minScale, scale * (targetHeight / naturalHeight) * 0.96);
-        guard++;
+    let fitScale = 1;
+    if (naturalHeight > targetHeight) {
+        fitScale = Math.max(0.05, targetHeight / naturalHeight);
     }
+
+    const charScale = (parseInt(els.fontScaleX.value) || 100) / 100;
+    textWrapper.style.transform = `scale(${fitScale}) scaleX(${charScale})`;
 
     area.style.height = `${Math.round(targetHeight)}px`;
 }
@@ -562,4 +550,254 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    document
+    document.querySelectorAll(".segmented-control button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const parent = btn.parentElement;
+            parent.querySelectorAll("button").forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            const hiddenInput = document.getElementById(parent.getAttribute("data-target"));
+            if (hiddenInput) {
+                hiddenInput.value = btn.getAttribute("data-value");
+                updateCanvas();
+            }
+        });
+    });
+
+    document.querySelectorAll('input[name="gradMode"]').forEach((radio) => {
+        radio.addEventListener("change", () => {
+            updateCanvas();
+        });
+    });
+
+    els.ratioSelect.addEventListener("change", () => {
+        const customArea = document.getElementById("customWidthArea");
+        if (customArea) {
+            customArea.style.display = els.ratioSelect.value === "free" ? "flex" : "none";
+        }
+        updateCanvas();
+    });
+
+    els.editor.addEventListener("input", updateCanvas);
+
+    if (typeof renderPresets === "function") {
+        renderPresets();
+    }
+
+    const autoTriggers = [
+        els.titleInput,
+        els.creatorInput,
+        els.canvasWidth,
+        els.paddingY,
+        els.paddingX,
+        els.bgType,
+        els.bgColor1,
+        els.gradColor1,
+        els.gradColor2,
+        els.gradColor3,
+        els.gradientDir,
+        els.globalTextColor,
+        els.subTextColor,
+        els.hlColorA,
+        els.hlColorB,
+        els.hlColorC,
+        els.quoteLineColor,
+        els.enableQuoteColor,
+        els.quoteColor,
+        els.enableParenColor,
+        els.parenColor,
+        els.fontSelect,
+        els.wordBreak,
+        els.fontSize,
+        els.letterSpacing,
+        els.lineHeight,
+        els.paraSpacing,
+        els.fontScaleX
+    ];
+
+    autoTriggers.forEach((element) => {
+        if (element) {
+            element.addEventListener("input", updateCanvas);
+            element.addEventListener("change", updateCanvas);
+        }
+    });
+
+    setTimeout(() => {
+        updateCanvas();
+    }, 50);
+});
+
+document.getElementById("btnCopy").addEventListener("click", () => {
+    if (!els.captureArea) return;
+    const originalHeight = els.captureArea.style.height;
+    if (els.ratioSelect.value === "free") {
+        els.captureArea.style.height = els.captureArea.scrollHeight + "px";
+    }
+
+    prepareCanvasForCapture(els.captureArea);
+
+    html2canvas(els.captureArea, { useCORS: true, allowTaint: true, backgroundColor: null, scale: 2 })
+        .then((canvas) => {
+            restoreCanvasAfterCapture(els.captureArea);
+            els.captureArea.style.height = originalHeight;
+
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    alert("이미지 변환 실패");
+                    return;
+                }
+                const item = new ClipboardItem({ "image/png": blob });
+                navigator.clipboard
+                    .write([item])
+                    .then(() => {
+                        alert("발췌문 이미지가 클립보드에 복사되었습니다!");
+                    })
+                    .catch(() => {
+                        alert("보안 정책으로 이미지 복사가 실패했습니다. 저장 버튼을 이용해 주세요.");
+                    });
+            }, "image/png");
+        })
+        .catch(() => {
+            restoreCanvasAfterCapture(els.captureArea);
+            els.captureArea.style.height = originalHeight;
+        });
+});
+
+document.getElementById("btnSave").addEventListener("click", () => {
+    if (!els.captureArea) return;
+    const originalWidth = els.captureArea.style.width;
+    const originalHeight = els.captureArea.style.height;
+    if (els.ratioSelect.value === "free") {
+        els.captureArea.style.height = els.captureArea.scrollHeight + "px";
+    }
+
+    prepareCanvasForCapture(els.captureArea);
+
+    html2canvas(els.captureArea, { useCORS: true, allowTaint: true, backgroundColor: null, scale: 2 })
+        .then((canvas) => {
+            restoreCanvasAfterCapture(els.captureArea);
+            els.captureArea.style.width = originalWidth;
+            els.captureArea.style.height = originalHeight;
+
+            const link = document.createElement("a");
+            link.download = `excerpt_${Date.now()}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        })
+        .catch(() => {
+            restoreCanvasAfterCapture(els.captureArea);
+            els.captureArea.style.width = originalWidth;
+            els.captureArea.style.height = originalHeight;
+        });
+});
+
+document.getElementById("bgImageInput").addEventListener("change", function (e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            document.getElementById("bgImageLayer").style.backgroundImage = `url(${event.target.result})`;
+            updateBgImageStyles();
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+function updateBgImageStyles() {
+    const bgLayer = document.getElementById("bgImageLayer");
+    const overlayLayer = document.getElementById("bgOverlayLayer");
+
+    bgLayer.style.backgroundSize = `${document.getElementById("bgImageSize").value}%`;
+    bgLayer.style.backgroundPosition = `${document.getElementById("bgImageX").value}% ${document.getElementById("bgImageY").value}%`;
+    bgLayer.style.filter = `blur(${document.getElementById("bgImageBlur").value}px)`;
+
+    const color = document.getElementById("bgOverlayColor").value;
+    const opacity = document.getElementById("bgOverlayOpacity").value;
+    overlayLayer.style.backgroundColor = `rgba(${color}, ${opacity})`;
+}
+
+["bgImageSize", "bgImageX", "bgImageY", "bgImageBlur", "bgOverlayColor", "bgOverlayOpacity"].forEach((id) => {
+    document.getElementById(id).addEventListener("input", updateBgImageStyles);
+});
+
+document.getElementById("textEditor").addEventListener("paste", function (e) {
+    e.preventDefault();
+    const text = (e.originalEvent || e).clipboardData.getData("text/plain");
+    document.execCommand("insertText", false, text);
+});
+
+function normalizeParagraphs(container) {
+    const paragraphs = [];
+    let currentParagraphNodes = [];
+
+    function flushParagraph() {
+        if (currentParagraphNodes.length > 0) {
+            paragraphs.push(currentParagraphNodes);
+            currentParagraphNodes = [];
+        }
+    }
+
+    function parseNodes(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            currentParagraphNodes.push(node.cloneNode(true));
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+            const tagName = node.tagName;
+
+            if (tagName === "BR") {
+                if (currentParagraphNodes.length > 0) {
+                    flushParagraph();
+                } else {
+                    paragraphs.push([]);
+                }
+            } else if (node.classList.contains("dialogue-line")) {
+                flushParagraph();
+                paragraphs.push(node.cloneNode(true));
+                flushParagraph();
+            } else if (tagName === "DIV" || tagName === "P" || /^H[1-6]$/.test(tagName)) {
+                flushParagraph();
+                Array.from(node.childNodes).forEach(parseNodes);
+                flushParagraph();
+            } else {
+                if (node.querySelector("div, p, br, .dialogue-line")) {
+                    Array.from(node.childNodes).forEach(parseNodes);
+                } else {
+                    currentParagraphNodes.push(node.cloneNode(true));
+                }
+            }
+        }
+    }
+
+    Array.from(container.childNodes).forEach(parseNodes);
+    flushParagraph();
+
+    while (paragraphs.length > 0) {
+        const lastPara = paragraphs[paragraphs.length - 1];
+        if (!(lastPara instanceof HTMLElement)) {
+            const isTextEmpty = lastPara.every((node) => node.textContent.trim() === "");
+            if (isTextEmpty) {
+                paragraphs.pop();
+                continue;
+            }
+        }
+        break;
+    }
+
+    container.innerHTML = "";
+    paragraphs.forEach((pNodes) => {
+        if (pNodes instanceof HTMLElement && pNodes.classList.contains("dialogue-line")) {
+            container.appendChild(pNodes);
+        } else {
+            const newDiv = document.createElement("div");
+            if (pNodes.length === 0) {
+                newDiv.appendChild(document.createElement("br"));
+            } else {
+                pNodes.forEach((n) => newDiv.appendChild(n));
+            }
+            container.appendChild(newDiv);
+        }
+    });
+
+    if (container.childNodes.length === 0) {
+        container.innerHTML = "<div><br></div>";
+    }
+}
