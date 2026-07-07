@@ -1,3 +1,27 @@
+/* 1. 오늘수사 폰트 등록 */
+@font-face {
+    font-family: 'OnulSusa';
+    src: url('./fonts/OnulSusa60-Regular.woff') format('woff');
+}
+
+/* 2. 오늘담소 폰트 등록 */
+@font-face {
+    font-family: 'OnulDamso';
+    src: url('./fonts/OnulDamso-Regular.woff') format('woff');
+}
+
+/* 3. 오늘삼화고딕 폰트 등록 */
+@font-face {
+    font-family: 'OnulSamhwa';
+    src: url('./fonts/OnulSamhwagothic-Regular.woff') format('woff');
+}
+
+/* 4. 오늘단조 폰트 등록 */
+@font-face {
+    font-family: 'OnulDanjo';
+    src: url('./fonts/OnulDanjo-Regular.woff') format('woff');
+}
+
 :root {
     --bg-main: #f8fafc;
     --bg-card: #ffffff;
