@@ -32,6 +32,7 @@ const els = {
     lineHeight: document.getElementById("lineHeight"),
     paraSpacing: document.getElementById("paraSpacing"),
     fontScaleX: document.getElementById("fontScaleX"),
+    infoFontSize: document.getElementById("infoFontSize"),
     captureArea: document.getElementById("captureArea")
 };
 
@@ -156,22 +157,23 @@ function updateCanvas() {
 
         const baseColor = els.globalTextColor.value;
         const fontName = els.fontSelect.value;
-        const computedFontSize = Math.max(12, parseFloat(els.fontSize.value) * 0.65);
+        const infoSize = parseFloat(els.infoFontSize?.value) || Math.max(10, parseFloat(els.fontSize.value) * 0.65);
+
         const titleVal = els.titleInput.value.trim();
         const creatorVal = els.creatorInput.value.trim();
         let infoHTML = "";
 
         if (titleVal || creatorVal) {
-            infoHTML += `<span class="info-dash" style="color: ${baseColor}; font-size: ${computedFontSize}px; margin-right: 6px;">｜</span>`;
+            infoHTML += `<span class="info-dash" style="color: ${baseColor}; font-size: ${infoSize}px; margin-right: 6px;">｜</span>`;
             if (titleVal && creatorVal) {
                 infoHTML +=
-                    `<span class="info-text-node" style="color: ${baseColor}; font-family: ${fontName}; font-size: ${computedFontSize}px;">${titleVal}</span>` +
-                    `<span class="info-divider" style="color: ${baseColor}; font-size: ${computedFontSize}px; margin: 0 6px;">•</span>` +
-                    `<span class="info-text-node" style="color: ${baseColor}; opacity: 0.7; font-family: ${fontName}; font-size: ${computedFontSize}px;">${creatorVal}</span>`;
+                    `<span class="info-text-node" style="color: ${baseColor}; font-family: ${fontName}; font-size: ${infoSize}px;">${titleVal}</span>` +
+                    `<span class="info-divider" style="color: ${baseColor}; font-size: ${infoSize}px; margin: 0 6px;">•</span>` +
+                    `<span class="info-text-node" style="color: ${baseColor}; opacity: 0.7; font-family: ${fontName}; font-size: ${infoSize}px;">${creatorVal}</span>`;
             } else if (titleVal) {
-                infoHTML += `<span class="info-text-node" style="color: ${baseColor}; font-family: ${fontName}; font-size: ${computedFontSize}px;">${titleVal}</span>`;
+                infoHTML += `<span class="info-text-node" style="color: ${baseColor}; font-family: ${fontName}; font-size: ${infoSize}px;">${titleVal}</span>`;
             } else {
-                infoHTML += `<span class="info-text-node" style="color: ${baseColor}; opacity: 0.7; font-family: ${fontName}; font-size: ${computedFontSize}px;">${creatorVal}</span>`;
+                infoHTML += `<span class="info-text-node" style="color: ${baseColor}; opacity: 0.7; font-family: ${fontName}; font-size: ${infoSize}px;">${creatorVal}</span>`;
             }
         }
 
@@ -502,7 +504,8 @@ document.addEventListener("DOMContentLoaded", () => {
         els.bgType, els.bgColor1, els.gradColor1, els.gradColor2, els.gradColor3, els.gradientDir,
         els.globalTextColor, els.subTextColor, els.hlColorA, els.hlColorB, els.hlColorC,
         els.quoteLineColor, els.enableQuoteColor, els.quoteColor, els.enableParenColor, els.parenColor,
-        els.fontSelect, els.wordBreak, els.fontSize, els.letterSpacing, els.lineHeight, els.paraSpacing, els.fontScaleX
+        els.fontSelect, els.wordBreak, els.fontSize, els.letterSpacing, els.lineHeight,
+        els.paraSpacing, els.fontScaleX, els.infoFontSize
     ];
     autoTriggers.forEach((el) => {
         if (el) { el.addEventListener("input", updateCanvas); el.addEventListener("change", updateCanvas); }
@@ -514,12 +517,17 @@ document.addEventListener("DOMContentLoaded", () => {
 document.getElementById("btnCopy").addEventListener("click", () => {
     if (!els.captureArea) return;
     const originalHeight = els.captureArea.style.height;
-    if (els.ratioSelect.value === "free") els.captureArea.style.height = els.captureArea.scrollHeight + "px";
+    const originalOverflow = els.captureArea.style.overflow;
+    if (els.ratioSelect.value === "free") {
+        els.captureArea.style.height = els.captureArea.scrollHeight + "px";
+    }
+    els.captureArea.style.overflow = "visible";
     prepareCanvasForCapture(els.captureArea);
     html2canvas(els.captureArea, { useCORS: true, allowTaint: true, backgroundColor: null, scale: 2 })
         .then((canvas) => {
             restoreCanvasAfterCapture(els.captureArea);
             els.captureArea.style.height = originalHeight;
+            els.captureArea.style.overflow = originalOverflow;
             canvas.toBlob((blob) => {
                 if (!blob) { alert("이미지 변환 실패"); return; }
                 const item = new ClipboardItem({ "image/png": blob });
@@ -528,33 +536,50 @@ document.getElementById("btnCopy").addEventListener("click", () => {
                     .catch(() => alert("보안 정책으로 이미지 복사가 실패했습니다. 저장 버튼을 이용해 주세요."));
             }, "image/png");
         })
-        .catch(() => { restoreCanvasAfterCapture(els.captureArea); els.captureArea.style.height = originalHeight; });
+        .catch(() => {
+            restoreCanvasAfterCapture(els.captureArea);
+            els.captureArea.style.height = originalHeight;
+            els.captureArea.style.overflow = originalOverflow;
+        });
 });
 
 document.getElementById("btnSave").addEventListener("click", () => {
     if (!els.captureArea) return;
     const originalWidth = els.captureArea.style.width;
     const originalHeight = els.captureArea.style.height;
-    if (els.ratioSelect.value === "free") els.captureArea.style.height = els.captureArea.scrollHeight + "px";
+    const originalOverflow = els.captureArea.style.overflow;
+    if (els.ratioSelect.value === "free") {
+        els.captureArea.style.height = els.captureArea.scrollHeight + "px";
+    }
+    els.captureArea.style.overflow = "visible";
     prepareCanvasForCapture(els.captureArea);
     html2canvas(els.captureArea, { useCORS: true, allowTaint: true, backgroundColor: null, scale: 2 })
         .then((canvas) => {
             restoreCanvasAfterCapture(els.captureArea);
             els.captureArea.style.width = originalWidth;
             els.captureArea.style.height = originalHeight;
+            els.captureArea.style.overflow = originalOverflow;
             const link = document.createElement("a");
             link.download = `excerpt_${Date.now()}.png`;
             link.href = canvas.toDataURL("image/png");
             link.click();
         })
-        .catch(() => { restoreCanvasAfterCapture(els.captureArea); els.captureArea.style.width = originalWidth; els.captureArea.style.height = originalHeight; });
+        .catch(() => {
+            restoreCanvasAfterCapture(els.captureArea);
+            els.captureArea.style.width = originalWidth;
+            els.captureArea.style.height = originalHeight;
+            els.captureArea.style.overflow = originalOverflow;
+        });
 });
 
 document.getElementById("bgImageInput").addEventListener("change", function (e) {
     const file = e.target.files[0];
     if (file) {
         const reader = new FileReader();
-        reader.onload = (event) => { document.getElementById("bgImageLayer").style.backgroundImage = `url(${event.target.result})`; updateBgImageStyles(); };
+        reader.onload = (event) => {
+            document.getElementById("bgImageLayer").style.backgroundImage = `url(${event.target.result})`;
+            updateBgImageStyles();
+        };
         reader.readAsDataURL(file);
     }
 });
