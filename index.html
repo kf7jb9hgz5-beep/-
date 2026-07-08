@@ -4,9 +4,7 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
         <title>발췌 문구 생성기 Studio - Mobile</title>
-        <link
-            href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Gothic:wght@400;700&family=Gowun+Dodum&display=swap"
-            rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Gothic:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet" />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
         <link rel="stylesheet" href="style.css" />
     </head>
@@ -29,18 +27,18 @@
                 <div class="editor-header">
                     <span class="card-title">본문</span>
                     <div class="editor-toolbar pill-group">
-                        <button id="btnBold" title="굵게">B</button>
-                        <button id="btnItalic" title="기울임">I</button>
-                        <button id="btnQuoteWrap" title="따옴표 감싸기">""</button>
-                        <button id="btnSubText" title="보조 글자색 적용">보조색</button>
-                        <select id="selHighlight" class="toolbar-select" title="형광펜 칠하기">
+                        <button id="btnBold">B</button>
+                        <button id="btnItalic">I</button>
+                        <button id="btnQuoteWrap">""</button>
+                        <button id="btnSubText">보조색</button>
+                        <select id="selHighlight" class="toolbar-select">
                             <option value="" disabled selected>형광펜</option>
                             <option value="A">형광펜 A</option>
                             <option value="B">형광펜 B</option>
                             <option value="C">형광펜 C</option>
                         </select>
-                        <button id="btnQuoteLine" class="btn-dialogue-line" title="대사 강조선 바">강조선</button>
-                        <button id="btnClearHighlight" title="선택 효과 지우기" class="text-danger">지우기</button>
+                        <button id="btnQuoteLine">강조선</button>
+                        <button id="btnClearHighlight" class="text-danger">지우기</button>
                     </div>
                 </div>
                 <div id="textEditor" contenteditable="true" placeholder="이곳에 발췌할 문구를 입력하거나 드래그 후 상단 효과 버튼을 적용하세요."></div>
@@ -57,6 +55,7 @@
             </section>
 
             <section class="adaptive-settings-window" id="modalSubWindow">
+
                 <div class="tab-panel" id="panel-canvas">
                     <div class="panel-section-title">캔버스 설정</div>
                     <div class="control-minimal-row">
@@ -93,7 +92,6 @@
                             <button onclick="stepInput('paddingY', 5)">+</button>
                         </div>
                     </div>
-
                     <div class="panel-section-title">배경 커스텀</div>
                     <div class="control-minimal-row">
                         <label for="bgType">배경 타입</label>
@@ -210,7 +208,6 @@
                             <option value="break-all">글자 단위</option>
                         </select>
                     </div>
-
                     <div class="panel-section-title">간격 디테일</div>
                     <div class="control-minimal-row">
                         <label for="fontSize">크기 (px)</label>
@@ -290,7 +287,6 @@
                             <span>강조선</span>
                         </div>
                     </div>
-
                     <div class="panel-section-title">스마트 하이라이트</div>
                     <div class="control-minimal-row">
                         <div class="checkbox-minimal-group">
@@ -318,26 +314,27 @@
                     </div>
                     <div class="preset-list-scroll" id="presetList"></div>
                 </div>
+
             </section>
         </main>
 
         <nav class="bottom-tab-bar">
             <div class="dock-action-group">
-                <button class="dock-btn tab-btn" data-target="panel-canvas" title="캔버스 및 배경">
+                <button class="dock-btn tab-btn" data-target="panel-canvas">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                         <circle cx="8.5" cy="8.5" r="1.5"></circle>
                         <polyline points="21 15 16 10 5 21"></polyline>
                     </svg>
                 </button>
-                <button class="dock-btn tab-btn" data-target="panel-style" title="텍스트 스타일">
+                <button class="dock-btn tab-btn" data-target="panel-style">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="4 7 4 4 20 4 20 7"></polyline>
                         <line x1="9" y1="20" x2="15" y2="20"></line>
                         <line x1="12" y1="4" x2="12" y2="20"></line>
                     </svg>
                 </button>
-                <button class="dock-btn tab-btn" data-target="panel-effect" title="효과 및 컬러">
+                <button class="dock-btn tab-btn" data-target="panel-effect">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
                         <circle cx="12" cy="12" r="4"></circle>
@@ -347,7 +344,7 @@
                         <line x1="20" y1="12" x2="22" y2="12"></line>
                     </svg>
                 </button>
-                <button class="dock-btn tab-btn" data-target="panel-presets" title="디자인 프리셋">
+                <button class="dock-btn tab-btn" data-target="panel-presets">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
                         <polyline points="17 21 17 13 7 13 7 21"></polyline>
