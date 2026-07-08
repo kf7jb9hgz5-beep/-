@@ -43,10 +43,7 @@
                         <button id="btnClearHighlight" title="선택 효과 지우기" class="text-danger">지우기</button>
                     </div>
                 </div>
-                <div
-                    id="textEditor"
-                    contenteditable="true"
-                    placeholder="이곳에 발췌할 문구를 입력하거나 드래그 후 상단 효과 버튼을 적용하세요."></div>
+                <div id="textEditor" contenteditable="true" placeholder="이곳에 발췌할 문구를 입력하거나 드래그 후 상단 효과 버튼을 적용하세요."></div>
                 <div class="meta-input-inline">
                     <div class="input-minimal">
                         <label for="titleInput">타이틀</label>
@@ -253,15 +250,16 @@
                             <button onclick="stepInput('fontScaleX', -1)">-</button>
                             <input type="number" id="fontScaleX" value="100" />
                             <button onclick="stepInput('fontScaleX', 1)">+</button>
-                        <div class="control-minimal-row">
-    <label for="infoFontSize">타이틀 크기 (px)</label>
-    <div class="stepper-minimal">
-        <button onclick="stepInput('infoFontSize', -1)">-</button>
-        <input type="number" id="infoFontSize" value="11" />
-        <button onclick="stepInput('infoFontSize', 1)">+</button>
-    </div>
-</div>
-
+                        </div>
+                    </div>
+                    <div class="control-minimal-row">
+                        <label for="infoFontSize">타이틀 크기 (px)</label>
+                        <div class="stepper-minimal">
+                            <button onclick="stepInput('infoFontSize', -1)">-</button>
+                            <input type="number" id="infoFontSize" value="11" />
+                            <button onclick="stepInput('infoFontSize', 1)">+</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="tab-panel" id="panel-effect">
