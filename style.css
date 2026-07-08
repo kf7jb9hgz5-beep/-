@@ -133,31 +133,53 @@
     font-weight: normal;
     font-display: swap;
 }
-@font-face {
-    font-family: "OnulSusa60";
-    src: url("Fonts/OnulSusa60-Regular.woff") format("woff");
-    font-weight: normal;
-    font-display: swap;
-}
+/* ===========================
+   오늘 폰트
+=========================== */
+
 @font-face {
     font-family: "OnulDamso";
-    src: url("Fonts/OnulDamso-Regular.woff") format("woff");
-    font-weight: normal;
-    font-display: swap;
-}
-@font-face {
-    font-family: "OnulSamhwagothic";
-    src: url("Fonts/OnulSamhwagothic-Regular.woff") format("woff");
-    font-weight: normal;
-    font-display: swap;
-}
-@font-face {
-    font-family: "OnulDanjo";
-    src: url("Fonts/OnulDanjo-Regular.woff") format("woff");
-    font-weight: normal;
+    src:
+        url("Fonts/OnulDamso-Regular.woff2") format("woff2"),
+        url("Fonts/OnulDamso-Regular.woff") format("woff"),
+        url("Fonts/OnulDamso-Regular.otf") format("opentype");
+    font-weight: 400;
+    font-style: normal;
     font-display: swap;
 }
 
+@font-face {
+    font-family: "OnulDanjo";
+    src:
+        url("Fonts/OnulDanjo-Regular.woff2") format("woff2"),
+        url("Fonts/OnulDanjo-Regular.woff") format("woff"),
+        url("Fonts/OnulDanjo-Regular.otf") format("opentype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "OnulSamhwagothic";
+    src:
+        url("Fonts/OnulSamhwagothic-Regular.woff2") format("woff2"),
+        url("Fonts/OnulSamhwagothic-Regular.woff") format("woff"),
+        url("Fonts/OnulSamhwagothic-Regular.otf") format("opentype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "OnulSusa60";
+    src:
+        url("Fonts/OnulSusa60-Regular.woff2") format("woff2"),
+        url("Fonts/OnulSusa60-Regular.woff") format("woff"),
+        url("Fonts/OnulSusa60-Regular.otf") format("opentype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
 
 html,
 body.mobile-theme {
