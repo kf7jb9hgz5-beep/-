@@ -357,7 +357,7 @@ body.mobile-theme {
 }
 
 .card-title {
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 700;
     color: var(--text-muted);
     letter-spacing: 0.05em;
