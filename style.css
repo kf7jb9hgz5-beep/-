@@ -135,28 +135,29 @@
 }
 @font-face {
     font-family: "OnulSusa60";
-    src: url("OnulSusa60-Regular.woff") format("woff");
+    src: url("Fonts/OnulSusa60-Regular.woff") format("woff");
     font-weight: normal;
     font-display: swap;
 }
 @font-face {
     font-family: "OnulDamso";
-    src: url("OnulDamso-Regular.woff") format("woff");
+    src: url("Fonts/OnulDamso-Regular.woff") format("woff");
     font-weight: normal;
     font-display: swap;
 }
 @font-face {
     font-family: "OnulSamhwagothic";
-    src: url("OnulSamhwagothic-Regular.woff") format("woff");
+    src: url("Fonts/OnulSamhwagothic-Regular.woff") format("woff");
     font-weight: normal;
     font-display: swap;
 }
 @font-face {
     font-family: "OnulDanjo";
-    src: url("OnulDanjo-Regular.woff") format("woff");
+    src: url("Fonts/OnulDanjo-Regular.woff") format("woff");
     font-weight: normal;
     font-display: swap;
 }
+
 
 html,
 body.mobile-theme {
