@@ -253,8 +253,15 @@
                             <button onclick="stepInput('fontScaleX', -1)">-</button>
                             <input type="number" id="fontScaleX" value="100" />
                             <button onclick="stepInput('fontScaleX', 1)">+</button>
-                        </div>
-                    </div>
+                        <div class="control-minimal-row">
+    <label for="infoFontSize">타이틀 크기 (px)</label>
+    <div class="stepper-minimal">
+        <button onclick="stepInput('infoFontSize', -1)">-</button>
+        <input type="number" id="infoFontSize" value="11" />
+        <button onclick="stepInput('infoFontSize', 1)">+</button>
+    </div>
+</div>
+
                 </div>
 
                 <div class="tab-panel" id="panel-effect">
