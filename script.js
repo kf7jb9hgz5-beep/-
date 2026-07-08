@@ -156,7 +156,7 @@ function updateCanvas() {
 
         const baseColor = els.globalTextColor.value;
         const fontName = els.fontSelect.value;
-        const computedFontSize = Math.max(12, parseFloat(els.fontSize.value) * 0.4);
+        const computedFontSize = Math.max(12, parseFloat(els.fontSize.value) * 0.65);
         const titleVal = els.titleInput.value.trim();
         const creatorVal = els.creatorInput.value.trim();
         let infoHTML = "";
