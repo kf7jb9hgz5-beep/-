@@ -562,7 +562,9 @@ document.getElementById("btnSave").addEventListener("click", () => {
             const link = document.createElement("a");
             link.download = `excerpt_${Date.now()}.png`;
             link.href = canvas.toDataURL("image/png");
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
         })
         .catch(() => {
             restoreCanvasAfterCapture(els.captureArea);
