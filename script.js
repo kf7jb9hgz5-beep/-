@@ -372,12 +372,13 @@ function syncLiveHighlights(overrideColors = null) {
 }
 
 function prepareCanvasForCapture(container) {
+    const currentFont = els.fontSelect ? els.fontSelect.value : "inherit";
     container.querySelectorAll("span").forEach((span) => {
         const bg = span.style.backgroundColor;
         if (bg && bg !== "transparent" && bg !== "initial") {
             span.setAttribute("data-original-html", span.innerHTML);
             const chars = Array.from(span.textContent);
-            span.innerHTML = chars.map((char) => char === "\n" ? "\n" : `<span style="background-color: ${bg}; display: inline; color: inherit; font-family: inherit; font-weight: inherit;">${char}</span>`).join("");
+            span.innerHTML = chars.map((char) => char === "\n" ? "\n" : `<span style="background-color: ${bg}; display: inline; color: inherit; font-family: ${currentFont}; font-weight: inherit;">${char}</span>`).join("");
             span.style.backgroundColor = "transparent";
         }
     });
@@ -559,12 +560,21 @@ document.getElementById("btnSave").addEventListener("click", () => {
             els.captureArea.style.width = originalWidth;
             els.captureArea.style.height = originalHeight;
             els.captureArea.style.overflow = originalOverflow;
+
+            const dataURL = canvas.toDataURL("image/png");
+
+            // Safari: a 태그 다운로드
             const link = document.createElement("a");
             link.download = `excerpt_${Date.now()}.png`;
-            link.href = canvas.toDataURL("image/png");
+            link.href = dataURL;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+
+            // Chrome 모바일: 새 탭으로 열기
+            setTimeout(() => {
+                window.open(dataURL, "_blank");
+            }, 500);
         })
         .catch(() => {
             restoreCanvasAfterCapture(els.captureArea);
