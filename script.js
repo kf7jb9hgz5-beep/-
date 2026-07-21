@@ -560,21 +560,17 @@ document.getElementById("btnSave").addEventListener("click", () => {
             els.captureArea.style.width = originalWidth;
             els.captureArea.style.height = originalHeight;
             els.captureArea.style.overflow = originalOverflow;
-
-            const dataURL = canvas.toDataURL("image/png");
-
-            // Safari: a 태그 다운로드
-            const link = document.createElement("a");
-            link.download = `excerpt_${Date.now()}.png`;
-            link.href = dataURL;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            // Chrome 모바일: 새 탭으로 열기
-            setTimeout(() => {
-                window.open(dataURL, "_blank");
-            }, 500);
+            canvas.toBlob((blob) => {
+                if (!blob) { alert("이미지 변환 실패"); return; }
+                const blobURL = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = blobURL;
+                link.download = `excerpt_${Date.now()}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(() => URL.revokeObjectURL(blobURL), 1000);
+            }, "image/png");
         })
         .catch(() => {
             restoreCanvasAfterCapture(els.captureArea);
