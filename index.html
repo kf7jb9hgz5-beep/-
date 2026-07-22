@@ -37,7 +37,9 @@
                             <option value="B">형광펜 B</option>
                             <option value="C">형광펜 C</option>
                         </select>
-                        <button id="btnQuoteLine">강조선</button>
+                        <select id="selQuoteLine" class="toolbar-select">
+                            <option value="" disabled selected>강조선</option>
+                        </select>
                         <button id="btnClearHighlight" class="text-danger">지우기</button>
                     </div>
                 </div>
@@ -282,11 +284,15 @@
                             <input type="color" id="hlColorC" value="#bfdbfe" />
                             <span>형광펜 C</span>
                         </div>
-                        <div class="picker-cell">
-                            <input type="color" id="quoteLineColor" value="#2563eb" />
-                            <span>강조선</span>
-                        </div>
                     </div>
+
+                    <div class="panel-section-title">강조선 관리</div>
+                    <div class="ql-add-row">
+                        <input type="color" id="newQuoteLineColor" value="#2563eb" />
+                        <button class="btn-ql-add" onclick="addQuoteLine()">+ 강조선 색상 추가</button>
+                    </div>
+                    <div id="quoteLineList"></div>
+
                     <div class="panel-section-title">스마트 하이라이트</div>
                     <div class="control-minimal-row">
                         <div class="checkbox-minimal-group">
