@@ -836,14 +836,13 @@ input[type="file"]::file-selector-button {
 
 .dialogue-line {
     display: block !important;
-    border-left: 3px solid #000000;
+    border-left: 3px solid var(--quote-line-color, #000000) !important;
     padding-left: 12px !important;
     margin-bottom: inherit;
     text-align: inherit;
     min-height: 1.6em;
     box-sizing: border-box;
 }
-
 
 .gradient-config-box {
     display: flex;
@@ -1036,60 +1035,3 @@ input[type="file"]::file-selector-button {
     position: relative;
     z-index: 2;
 }
-
-.ql-add-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 0;
-}
-.ql-add-row input[type="color"] {
-    width: 38px;
-    height: 38px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    cursor: pointer;
-    padding: 2px;
-    background: none;
-    flex-shrink: 0;
-}
-.btn-ql-add {
-    flex: 1;
-    height: 38px;
-    background: none;
-    border: 1px dashed var(--border-color);
-    border-radius: 8px;
-    font-size: 13px;
-    color: var(--muted);
-    cursor: pointer;
-}
-.btn-ql-add:active { background: var(--bg-main); }
-.ql-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 7px 0;
-    border-bottom: 1px solid rgba(241,245,249,0.6);
-}
-.ql-item:last-child { border-bottom: none; }
-.ql-swatch {
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    border: 1px solid rgba(0,0,0,0.1);
-    flex-shrink: 0;
-}
-.ql-label {
-    flex: 1;
-    font-size: 13px;
-    color: var(--text-main);
-}
-.ql-del {
-    background: none;
-    border: none;
-    color: var(--danger-color);
-    font-size: 14px;
-    cursor: pointer;
-    padding: 4px 6px;
-}
-
