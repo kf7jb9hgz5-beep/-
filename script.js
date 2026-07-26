@@ -17,6 +17,7 @@ const els = {
     hlColorA: document.getElementById("hlColorA"),
     hlColorB: document.getElementById("hlColorB"),
     hlColorC: document.getElementById("hlColorC"),
+    quoteLineColor: document.getElementById("quoteLineColor"),
     enableQuoteColor: document.getElementById("enableQuoteColor"),
     quoteColor: document.getElementById("quoteColor"),
     enableParenColor: document.getElementById("enableParenColor"),
@@ -35,63 +36,6 @@ const els = {
     captureArea: document.getElementById("captureArea")
 };
 
-// ── 강조선 관리 ──────────────────────────────────────
-let quoteLines = [];
-let qlNextId = 1;
-
-function addQuoteLine() {
-    const color = document.getElementById("newQuoteLineColor").value;
-    const id = `ql_${qlNextId++}`;
-    quoteLines.push({ id, color });
-    renderQuoteLineList();
-    renderQuoteLineSelect();
-}
-
-function deleteQuoteLine(id) {
-    quoteLines = quoteLines.filter(q => q.id !== id);
-    els.editor.querySelectorAll(`[data-ql-id="${id}"]`).forEach(el => {
-        el.classList.remove("dialogue-line");
-        el.removeAttribute("data-ql-id");
-        el.style.borderLeftColor = "";
-    });
-    renderQuoteLineList();
-    renderQuoteLineSelect();
-    updateCanvas();
-}
-
-function renderQuoteLineList() {
-    const container = document.getElementById("quoteLineList");
-    if (!container) return;
-    container.innerHTML = "";
-    if (quoteLines.length === 0) {
-        container.innerHTML = '<div style="font-size:13px;color:var(--text-muted);text-align:center;padding:8px 0">추가된 강조선이 없어요</div>';
-        return;
-    }
-    quoteLines.forEach(ql => {
-        const item = document.createElement("div");
-        item.className = "ql-item";
-        item.innerHTML = `
-            <div class="ql-swatch" style="background:${ql.color}"></div>
-            <div class="ql-label">${ql.color}</div>
-            <button class="ql-del" onclick="deleteQuoteLine('${ql.id}')">✕</button>
-        `;
-        container.appendChild(item);
-    });
-}
-
-function renderQuoteLineSelect() {
-    const sel = document.getElementById("selQuoteLine");
-    if (!sel) return;
-    sel.innerHTML = '<option value="" disabled selected>강조선</option>';
-    quoteLines.forEach(ql => {
-        const opt = document.createElement("option");
-        opt.value = ql.id;
-        opt.textContent = ql.color;
-        sel.appendChild(opt);
-    });
-}
-
-// ── 캔버스 렌더 ──────────────────────────────────────
 function updateCanvas() {
     if (!els.captureArea) return;
 
@@ -149,10 +93,8 @@ function updateCanvas() {
         textWrapper.innerHTML = rawHTML;
         normalizeParagraphs(textWrapper);
 
-        textWrapper.querySelectorAll(".dialogue-line[data-ql-id]").forEach(el => {
-            const ql = quoteLines.find(q => q.id === el.dataset.qlId);
-            if (ql) el.style.borderLeftColor = ql.color;
-        });
+        textWrapper.style.setProperty("--quote-line-color", els.quoteLineColor.value);
+        if (els.editor) els.editor.style.setProperty("--quote-line-color", els.quoteLineColor.value);
 
         applySmartHighlighting(textWrapper);
 
@@ -216,6 +158,7 @@ function updateCanvas() {
         const baseColor = els.globalTextColor.value;
         const fontName = els.fontSelect.value;
         const infoSize = parseFloat(els.infoFontSize?.value) || Math.max(10, parseFloat(els.fontSize.value) * 0.65);
+
         const titleVal = els.titleInput.value.trim();
         const creatorVal = els.creatorInput.value.trim();
         let infoHTML = "";
@@ -238,7 +181,10 @@ function updateCanvas() {
         infoContainer.style.display = (titleVal || creatorVal) ? "flex" : "none";
     }
 
-    if (ratio !== "free") fitTextToCanvas();
+    if (ratio !== "free") {
+        fitTextToCanvas();
+    }
+
     if (typeof syncLiveHighlights === "function") {
         try { syncLiveHighlights(); } catch (e) {}
     }
@@ -256,6 +202,7 @@ function fitTextToCanvas() {
     const baseFontSize = parseFloat(els.fontSize.value) || 16;
     const baseLineHeight = parseFloat(els.lineHeight.value) || 28;
     const lhRatio = baseLineHeight / baseFontSize;
+
     const areaW = area.getBoundingClientRect().width || parseFloat(area.style.width) || 420;
     const targetH = (areaW * h) / w;
 
@@ -266,6 +213,7 @@ function fitTextToCanvas() {
     void area.offsetHeight;
 
     const naturalH = area.scrollHeight;
+
     if (naturalH <= targetH + 2) {
         area.style.height = `${Math.round(targetH)}px`;
         area.style.overflow = "hidden";
@@ -275,6 +223,7 @@ function fitTextToCanvas() {
     const scale = targetH / naturalH;
     const newFontSize = Math.max(4, baseFontSize * scale * 0.97);
     const newLineHeight = newFontSize * lhRatio;
+
     textWrapper.style.fontSize = `${newFontSize}px`;
     textWrapper.style.lineHeight = `${newLineHeight}px`;
     void area.offsetHeight;
@@ -481,34 +430,17 @@ document.getElementById("selHighlight").addEventListener("change", function () {
     updateCanvas();
 });
 
-document.getElementById("selQuoteLine").addEventListener("change", function () {
-    const qlId = this.value;
-    if (!qlId) return;
-    const ql = quoteLines.find(q => q.id === qlId);
-    if (!ql) return;
-    this.value = "";
-
+document.getElementById("btnQuoteLine").addEventListener("click", () => {
     let selection = window.getSelection();
     if (!selection.rangeCount) return;
     let range = selection.getRangeAt(0);
     let block = range.commonAncestorContainer;
     while (block && block.nodeType !== Node.ELEMENT_NODE) block = block.parentNode;
-
     if (block && block.id !== "textEditor") {
-        if (block.classList.contains("dialogue-line") && block.dataset.qlId === qlId) {
-            block.classList.remove("dialogue-line");
-            block.removeAttribute("data-ql-id");
-            block.style.borderLeftColor = "";
-        } else {
-            block.classList.add("dialogue-line");
-            block.dataset.qlId = qlId;
-            block.style.borderLeftColor = ql.color;
-        }
+        block.classList.toggle("dialogue-line");
     } else {
-        const div = document.createElement("div");
+        let div = document.createElement("div");
         div.classList.add("dialogue-line");
-        div.dataset.qlId = qlId;
-        div.style.borderLeftColor = ql.color;
         div.appendChild(range.extractContents());
         range.insertNode(div);
     }
@@ -526,8 +458,6 @@ els.editor.addEventListener("keydown", function (e) {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-    renderQuoteLineList();
-
     els.tabs.forEach((tab) => {
         tab.addEventListener("click", () => {
             const targetId = tab.getAttribute("data-target");
@@ -574,7 +504,7 @@ document.addEventListener("DOMContentLoaded", () => {
         els.titleInput, els.creatorInput, els.canvasWidth, els.paddingY, els.paddingX,
         els.bgType, els.bgColor1, els.gradColor1, els.gradColor2, els.gradColor3, els.gradientDir,
         els.globalTextColor, els.subTextColor, els.hlColorA, els.hlColorB, els.hlColorC,
-        els.enableQuoteColor, els.quoteColor, els.enableParenColor, els.parenColor,
+        els.quoteLineColor, els.enableQuoteColor, els.quoteColor, els.enableParenColor, els.parenColor,
         els.fontSelect, els.wordBreak, els.fontSize, els.letterSpacing, els.lineHeight,
         els.paraSpacing, els.fontScaleX, els.infoFontSize
     ];
@@ -589,7 +519,9 @@ document.getElementById("btnCopy").addEventListener("click", () => {
     if (!els.captureArea) return;
     const originalHeight = els.captureArea.style.height;
     const originalOverflow = els.captureArea.style.overflow;
-    if (els.ratioSelect.value === "free") els.captureArea.style.height = els.captureArea.scrollHeight + "px";
+    if (els.ratioSelect.value === "free") {
+        els.captureArea.style.height = els.captureArea.scrollHeight + "px";
+    }
     els.captureArea.style.overflow = "visible";
     prepareCanvasForCapture(els.captureArea);
     html2canvas(els.captureArea, { useCORS: true, allowTaint: true, backgroundColor: null, scale: 2 })
@@ -617,7 +549,9 @@ document.getElementById("btnSave").addEventListener("click", () => {
     const originalWidth = els.captureArea.style.width;
     const originalHeight = els.captureArea.style.height;
     const originalOverflow = els.captureArea.style.overflow;
-    if (els.ratioSelect.value === "free") els.captureArea.style.height = els.captureArea.scrollHeight + "px";
+    if (els.ratioSelect.value === "free") {
+        els.captureArea.style.height = els.captureArea.scrollHeight + "px";
+    }
     els.captureArea.style.overflow = "visible";
     prepareCanvasForCapture(els.captureArea);
     html2canvas(els.captureArea, { useCORS: true, allowTaint: true, backgroundColor: null, scale: 2 })
