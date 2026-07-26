@@ -49,8 +49,7 @@ function addQuoteLine() {
 
 function deleteQuoteLine(id) {
     quoteLines = quoteLines.filter(q => q.id !== id);
-    // 해당 강조선이 적용된 요소에서 클래스 제거
-    document.querySelectorAll(`[data-ql-id="${id}"]`).forEach(el => {
+    els.editor.querySelectorAll(`[data-ql-id="${id}"]`).forEach(el => {
         el.classList.remove("dialogue-line");
         el.removeAttribute("data-ql-id");
         el.style.borderLeftColor = "";
@@ -150,18 +149,10 @@ function updateCanvas() {
         textWrapper.innerHTML = rawHTML;
         normalizeParagraphs(textWrapper);
 
-        // 강조선 색상 복원 (data-ql-id 기반)
         textWrapper.querySelectorAll(".dialogue-line[data-ql-id]").forEach(el => {
             const ql = quoteLines.find(q => q.id === el.dataset.qlId);
             if (ql) el.style.borderLeftColor = ql.color;
         });
-
-        if (els.editor) {
-            els.editor.querySelectorAll(".dialogue-line[data-ql-id]").forEach(el => {
-                const ql = quoteLines.find(q => q.id === el.dataset.qlId);
-                if (ql) el.style.borderLeftColor = ql.color;
-            });
-        }
 
         applySmartHighlighting(textWrapper);
 
@@ -454,7 +445,6 @@ function restoreCanvasAfterCapture(container) {
     });
 }
 
-// ── 버튼 이벤트 ──────────────────────────────────────
 document.getElementById("btnBold").addEventListener("click", () => { document.execCommand("bold", false, null); updateCanvas(); });
 document.getElementById("btnItalic").addEventListener("click", () => { document.execCommand("italic", false, null); updateCanvas(); });
 
