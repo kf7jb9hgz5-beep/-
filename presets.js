@@ -121,9 +121,10 @@ function applyPresetSnapshot(data) {
     }
 
     const customArea = document.getElementById("customWidthArea");
-    if (customArea) {
-        customArea.style.display = els.ratioSelect.value === "free" ? "flex" : "none";
-    }
+    const customHint = document.getElementById("customWidthHint");
+    const isFreeRatio = els.ratioSelect.value === "free";
+    if (customArea) customArea.style.display = isFreeRatio ? "flex" : "none";
+    if (customHint) customHint.style.display = isFreeRatio ? "block" : "none";
 
     if (typeof syncLiveHighlights === "function") {
         syncLiveHighlights({
