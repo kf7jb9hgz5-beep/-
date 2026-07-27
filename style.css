@@ -278,7 +278,7 @@ body.mobile-theme {
 #canvasTextWrapper {
     width: 100%;
     word-wrap: break-word;
-    margin-bottom: 2px !important; /* 발췌문과 하단 정보 라인 사이 여백 최소화 */
+    margin-bottom: 1.5em !important; /* 발췌문과 하단 정보 라인 사이 한 줄 공백 */
 }
 
 .canvas-column {
@@ -307,19 +307,29 @@ body.mobile-theme {
     gap: 0;
     width: 100%;
     transition: all 0.2s ease;
-    margin-top: 0 !important; /* 위쪽 공백 제거 */
+    margin-top: 0 !important;
     padding-top: 0 !important;
-    line-height: 1.2 !important; /* 정보 라인 줄간격 밀착 */
+    line-height: 1.2 !important;
+    font-size: 13px !important; /* 전체 크기 통일 */
+    color: var(--text-muted) !important; /* 전체 색상 통일 */
 }
 
 .info-dash {
-    font-weight: 300;
-    opacity: 0.65;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: inherit !important;
+    color: inherit !important;
+    font-weight: 400;
+    opacity: 1 !important;
+    margin: 0 4px;
 }
 
 .info-text-node {
     display: inline-flex;
     align-items: center;
+    font-size: inherit !important;
+    color: inherit !important;
     font-weight: 400;
     letter-spacing: -0.02em;
     white-space: nowrap;
@@ -328,7 +338,7 @@ body.mobile-theme {
     line-height: 1;
 }
 
-/* 기호 및 구분자 스타일 및 색상 통일 */
+/* 기호 및 구분자 스타일/크기/색상 완전 통일 */
 .info-divider,
 .info-symbol {
     display: inline-flex;
@@ -336,12 +346,13 @@ body.mobile-theme {
     justify-content: center;
     width: auto;
     height: auto;
+    font-size: inherit !important;
+    color: inherit !important;
     border-radius: 0;
     margin: 0 4px;
-    opacity: 0.8;
+    opacity: 1 !important;
     line-height: 1;
     vertical-align: middle;
-    color: var(--text-muted) !important; /* 타이틀/제작자 앞 기호 및 구분자 색상 통일 */
 }
 
 /* ==========================================================================
