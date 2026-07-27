@@ -330,7 +330,7 @@ body.mobile-theme {
     align-items: center;
     font-size: inherit !important;
     color: inherit !important;
-    font-weight: 400;
+    font-weight: 400; !important;
     letter-spacing: -0.02em;
     white-space: nowrap;
     border: none !important;
