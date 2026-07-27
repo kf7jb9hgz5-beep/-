@@ -1,40 +1,32 @@
-:root {
-    --bg-main: #f8fafc;
-    --bg-card: #ffffff;
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    --border-color: #e2e8f0;
-    --accent-color: #000000;
-    --accent-hover: #1e293b;
-    --danger-color: #ef4444;
-
-    --radius-pill: 9999px;
-    --radius-md: 16px;
-    --radius-sm: 10px;
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-    --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.04);
-    --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.08);
-
-    --transition-base: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-
-    --bottom-bar-height: 76px;
+/* ==========================================================================
+    형광펜 처리된 글자 및 인접 텍스트 글자 잘림/파묻힘 방지 패치
+    ========================================================================== */
+#textEditor *,
+#canvasTextWrapper * {
+    position: relative;
+    z-index: 1;
 }
 
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
+#textEditor span[style*="background-color"],
+#canvasTextWrapper span[style*="background-color"] {
+    position: relative;
+    display: inline;
+    vertical-align: baseline;
+    z-index: 1;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    padding: 0.1em 0.2em;
+    margin: 0 -0.1em;
+    border-radius: 2px;
 }
 
-@font-face {
-    font-family: "MaruBuri";
-    src: url(https://hangeul.pstatic.net/hangeul_static/webfont/MaruBuri/MaruBuri-ExtraLight.woff2) format("woff2");
-    font-weight: 200;
-    font-display: swap;
-}
-@font-face {
-    font-family: "MaruBuri";
-    src: url(https://hangeul.pstatic.net/hangeul_static/webfont/MaruBuri/MaruBuri-Light.woff2) format("woff2");
+#textEditor span:not([style*="background-color"]),
+#canvasTextWrapper span:not([style*="background-color"]) {
+    position: relative;
+    z-index: 2;
+    display: inline;
+    vertical-align: baseline;
+}    src: url(https://hangeul.pstatic.net/hangeul_static/webfont/MaruBuri/MaruBuri-Light.woff2) format("woff2");
     font-weight: 300;
     font-display: swap;
 }
