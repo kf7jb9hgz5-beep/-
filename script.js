@@ -58,6 +58,8 @@ function updateCanvas() {
     els.captureArea.style.aspectRatio = "";
     els.captureArea.style.maxWidth = "none";
 
+    const headerEl = document.querySelector(".canvas-header");
+
     if (ratio === "free") {
         const customW = parseFloat(els.canvasWidth.value) || 520;
         els.captureArea.style.width = `${customW}px`;
@@ -69,12 +71,10 @@ function updateCanvas() {
         delete els.captureArea.dataset.customWidthTarget;
         delete els.captureArea.dataset.fixedRatioW;
         delete els.captureArea.dataset.fixedRatioH;
-        const availableW = els.captureArea.parentElement.clientWidth || customW;
-        els.captureArea.parentElement.style.justifyContent = customW > availableW ? "flex-start" : "center";
     } else {
         const [wStr, hStr] = ratio.split(":");
         const w = parseInt(wStr), h = parseInt(hStr);
-        const targetWidth = Math.min(420, els.captureArea.parentElement.clientWidth || 420);
+        const targetWidth = Math.min(420, (headerEl && headerEl.clientWidth) || 420);
         const targetHeight = Math.round((targetWidth * h) / w);
         els.captureArea.style.width = `${targetWidth}px`;
         els.captureArea.style.maxWidth = `${targetWidth}px`;
@@ -85,7 +85,6 @@ function updateCanvas() {
         els.captureArea.dataset.fixedRatioW = w;
         els.captureArea.dataset.fixedRatioH = h;
         delete els.captureArea.dataset.customWidthTarget;
-        els.captureArea.parentElement.style.justifyContent = "center";
     }
 
     els.captureArea.style.padding = `${els.paddingY.value}px ${els.paddingX.value}px`;
@@ -250,6 +249,34 @@ function updateCanvas() {
     if (typeof syncLiveHighlights === "function") {
         try { syncLiveHighlights(); } catch (e) {}
     }
+
+    applyPreviewScale();
+}
+
+function applyPreviewScale() {
+    const wrapper = document.getElementById("captureAreaScaleWrapper");
+    const headerEl = document.querySelector(".canvas-header");
+    if (!wrapper || !els.captureArea) return;
+
+    if (els.ratioSelect.value !== "free") {
+        wrapper.style.width = "";
+        wrapper.style.height = "";
+        els.captureArea.style.transform = "none";
+        els.captureArea.style.transformOrigin = "";
+        return;
+    }
+
+    // 실제 크기(스케일 없이)를 정확히 측정하기 위해 우선 변형을 해제
+    els.captureArea.style.transform = "none";
+    const naturalW = els.captureArea.offsetWidth;
+    const naturalH = els.captureArea.scrollHeight;
+    const availableW = (headerEl ? headerEl.clientWidth : naturalW) || naturalW;
+    const scale = naturalW > 0 ? Math.min(1, availableW / naturalW) : 1;
+
+    els.captureArea.style.transformOrigin = "0 0";
+    els.captureArea.style.transform = scale < 1 ? `scale(${scale})` : "none";
+    wrapper.style.width = `${Math.round(naturalW * scale)}px`;
+    wrapper.style.height = `${Math.round(naturalH * scale)}px`;
 }
 
 function renderCanvasHeading() {
@@ -656,6 +683,8 @@ document.getElementById("btnCopy").addEventListener("click", () => {
     if (!els.captureArea) return;
     const originalHeight = els.captureArea.style.height;
     const originalOverflow = els.captureArea.style.overflow;
+    const originalTransform = els.captureArea.style.transform;
+    els.captureArea.style.transform = "none";
     if (els.ratioSelect.value === "free") {
         els.captureArea.style.height = els.captureArea.scrollHeight + "px";
     }
@@ -666,6 +695,8 @@ document.getElementById("btnCopy").addEventListener("click", () => {
             restoreCanvasAfterCapture(els.captureArea);
             els.captureArea.style.height = originalHeight;
             els.captureArea.style.overflow = originalOverflow;
+            els.captureArea.style.transform = originalTransform;
+            applyPreviewScale();
             canvas.toBlob((blob) => {
                 if (!blob) { alert("이미지 변환 실패"); return; }
                 const item = new ClipboardItem({ "image/png": blob });
@@ -678,6 +709,8 @@ document.getElementById("btnCopy").addEventListener("click", () => {
             restoreCanvasAfterCapture(els.captureArea);
             els.captureArea.style.height = originalHeight;
             els.captureArea.style.overflow = originalOverflow;
+            els.captureArea.style.transform = originalTransform;
+            applyPreviewScale();
         });
 });
 
@@ -685,6 +718,8 @@ document.getElementById("btnSave").addEventListener("click", () => {
     if (!els.captureArea) return;
     const originalHeight = els.captureArea.style.height;
     const originalOverflow = els.captureArea.style.overflow;
+    const originalTransform = els.captureArea.style.transform;
+    els.captureArea.style.transform = "none";
     if (els.ratioSelect.value === "free") {
         els.captureArea.style.height = els.captureArea.scrollHeight + "px";
     }
@@ -695,6 +730,8 @@ document.getElementById("btnSave").addEventListener("click", () => {
             restoreCanvasAfterCapture(els.captureArea);
             els.captureArea.style.height = originalHeight;
             els.captureArea.style.overflow = originalOverflow;
+            els.captureArea.style.transform = originalTransform;
+            applyPreviewScale();
             canvas.toBlob((blob) => {
                 if (!blob) { alert("이미지 변환 실패"); return; }
                 const blobURL = URL.createObjectURL(blob);
@@ -711,6 +748,8 @@ document.getElementById("btnSave").addEventListener("click", () => {
             restoreCanvasAfterCapture(els.captureArea);
             els.captureArea.style.height = originalHeight;
             els.captureArea.style.overflow = originalOverflow;
+            els.captureArea.style.transform = originalTransform;
+            applyPreviewScale();
         });
 });
 
