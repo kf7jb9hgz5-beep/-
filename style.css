@@ -218,6 +218,8 @@ body.mobile-theme {
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
     display: flex;
     justify-content: center;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 #captureArea {

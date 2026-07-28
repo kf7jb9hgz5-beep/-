@@ -60,17 +60,17 @@ function updateCanvas() {
 
     if (ratio === "free") {
         const customW = parseFloat(els.canvasWidth.value) || 520;
-        const availableW = els.captureArea.parentElement.clientWidth || customW;
-        const displayW = Math.max(80, Math.min(customW, availableW));
-        els.captureArea.style.width = `${displayW}px`;
-        els.captureArea.style.maxWidth = `${displayW}px`;
+        els.captureArea.style.width = `${customW}px`;
+        els.captureArea.style.maxWidth = "none";
         els.captureArea.style.height = "auto";
         els.captureArea.style.maxHeight = "none";
-        els.captureArea.style.margin = "auto";
+        els.captureArea.style.margin = "0 auto";
         els.captureArea.style.overflow = "hidden";
-        els.captureArea.dataset.customWidthTarget = customW;
+        delete els.captureArea.dataset.customWidthTarget;
         delete els.captureArea.dataset.fixedRatioW;
         delete els.captureArea.dataset.fixedRatioH;
+        const availableW = els.captureArea.parentElement.clientWidth || customW;
+        els.captureArea.parentElement.style.justifyContent = customW > availableW ? "flex-start" : "center";
     } else {
         const [wStr, hStr] = ratio.split(":");
         const w = parseInt(wStr), h = parseInt(hStr);
@@ -85,6 +85,7 @@ function updateCanvas() {
         els.captureArea.dataset.fixedRatioW = w;
         els.captureArea.dataset.fixedRatioH = h;
         delete els.captureArea.dataset.customWidthTarget;
+        els.captureArea.parentElement.style.justifyContent = "center";
     }
 
     els.captureArea.style.padding = `${els.paddingY.value}px ${els.paddingX.value}px`;
@@ -230,11 +231,11 @@ function updateCanvas() {
                 infoHTML +=
                     `<span class="info-text-node" style="color: ${baseColor}; font-family: ${fontName}; font-size: ${infoSize}px;">${titleVal}</span>` +
                     `<span class="info-divider" style="color: ${baseColor}; font-size: ${infoSize}px; margin: 0 6px;">x</span>` +
-                    `<span class="info-text-node" style="color: ${baseColor}; font-weight: 700; font-family: ${fontName}; font-size: ${infoSize}px;">${creatorVal}</span>`;
+                    `<span class="info-text-node" style="color: ${baseColor}; font-family: ${fontName}; font-size: ${infoSize}px;">${creatorVal}</span>`;
             } else if (titleVal) {
                 infoHTML += `<span class="info-text-node" style="color: ${baseColor}; font-family: ${fontName}; font-size: ${infoSize}px;">${titleVal}</span>`;
             } else {
-                infoHTML += `<span class="info-text-node" style="color: ${baseColor}; font-weight: 700; font-family: ${fontName}; font-size: ${infoSize}px;">${creatorVal}</span>`;
+                infoHTML += `<span class="info-text-node" style="color: ${baseColor}; font-family: ${fontName}; font-size: ${infoSize}px;">${creatorVal}</span>`;
             }
         }
 
@@ -653,13 +654,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 document.getElementById("btnCopy").addEventListener("click", () => {
     if (!els.captureArea) return;
-    const isFree = els.ratioSelect.value === "free";
-    const exportWidth = parseFloat(els.captureArea.dataset.customWidthTarget);
-    if (isFree && exportWidth) {
-        els.captureArea.style.width = `${exportWidth}px`;
-        els.captureArea.style.maxWidth = `${exportWidth}px`;
-    }
-    if (isFree) {
+    const originalHeight = els.captureArea.style.height;
+    const originalOverflow = els.captureArea.style.overflow;
+    if (els.ratioSelect.value === "free") {
         els.captureArea.style.height = els.captureArea.scrollHeight + "px";
     }
     els.captureArea.style.overflow = "visible";
@@ -667,7 +664,8 @@ document.getElementById("btnCopy").addEventListener("click", () => {
     html2canvas(els.captureArea, { useCORS: true, allowTaint: true, backgroundColor: null, scale: 2 })
         .then((canvas) => {
             restoreCanvasAfterCapture(els.captureArea);
-            updateCanvas();
+            els.captureArea.style.height = originalHeight;
+            els.captureArea.style.overflow = originalOverflow;
             canvas.toBlob((blob) => {
                 if (!blob) { alert("이미지 변환 실패"); return; }
                 const item = new ClipboardItem({ "image/png": blob });
@@ -678,19 +676,16 @@ document.getElementById("btnCopy").addEventListener("click", () => {
         })
         .catch(() => {
             restoreCanvasAfterCapture(els.captureArea);
-            updateCanvas();
+            els.captureArea.style.height = originalHeight;
+            els.captureArea.style.overflow = originalOverflow;
         });
 });
 
 document.getElementById("btnSave").addEventListener("click", () => {
     if (!els.captureArea) return;
-    const isFree = els.ratioSelect.value === "free";
-    const exportWidth = parseFloat(els.captureArea.dataset.customWidthTarget);
-    if (isFree && exportWidth) {
-        els.captureArea.style.width = `${exportWidth}px`;
-        els.captureArea.style.maxWidth = `${exportWidth}px`;
-    }
-    if (isFree) {
+    const originalHeight = els.captureArea.style.height;
+    const originalOverflow = els.captureArea.style.overflow;
+    if (els.ratioSelect.value === "free") {
         els.captureArea.style.height = els.captureArea.scrollHeight + "px";
     }
     els.captureArea.style.overflow = "visible";
@@ -698,7 +693,8 @@ document.getElementById("btnSave").addEventListener("click", () => {
     html2canvas(els.captureArea, { useCORS: true, allowTaint: true, backgroundColor: null, scale: 2 })
         .then((canvas) => {
             restoreCanvasAfterCapture(els.captureArea);
-            updateCanvas();
+            els.captureArea.style.height = originalHeight;
+            els.captureArea.style.overflow = originalOverflow;
             canvas.toBlob((blob) => {
                 if (!blob) { alert("이미지 변환 실패"); return; }
                 const blobURL = URL.createObjectURL(blob);
@@ -713,7 +709,8 @@ document.getElementById("btnSave").addEventListener("click", () => {
         })
         .catch(() => {
             restoreCanvasAfterCapture(els.captureArea);
-            updateCanvas();
+            els.captureArea.style.height = originalHeight;
+            els.captureArea.style.overflow = originalOverflow;
         });
 });
 
