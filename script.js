@@ -572,6 +572,49 @@ if (selAlignEl) {
     });
 }
 
+// 선택 영역에만 인라인 스타일(서체/크기 등)을 적용하는 헬퍼.
+// execCommand("fontSize", false, "7")로 선택 영역을 <font size="7"> 로 감싼 뒤,
+// 그 마커를 원하는 CSS가 적용된 <span>으로 치환한다. (여러 블록/노드에 걸친
+// 선택에도 안정적으로 동작하도록 브라우저 내장 로직을 활용)
+function applyStyleToSelection(cssProp, cssValue) {
+    const selection = window.getSelection();
+    if (!selection.rangeCount || selection.isCollapsed) return false;
+    if (!els.editor.contains(selection.anchorNode)) return false;
+
+    document.execCommand("fontSize", false, "7");
+
+    const markers = els.editor.querySelectorAll('font[size="7"]');
+    markers.forEach((marker) => {
+        const span = document.createElement("span");
+        span.style[cssProp] = cssValue;
+        while (marker.firstChild) span.appendChild(marker.firstChild);
+        marker.parentNode.replaceChild(span, marker);
+    });
+    return true;
+}
+
+const selFontFamilyEl = document.getElementById("selFontFamily");
+if (selFontFamilyEl) {
+    selFontFamilyEl.addEventListener("change", function () {
+        const val = this.value;
+        this.value = "";
+        if (!val) return;
+        if (applyStyleToSelection("fontFamily", val)) updateCanvas();
+        else alert("먼저 본문에서 글자를 드래그해 선택해 주세요.");
+    });
+}
+
+const selFontSizeEl = document.getElementById("selFontSize");
+if (selFontSizeEl) {
+    selFontSizeEl.addEventListener("change", function () {
+        const val = this.value;
+        this.value = "";
+        if (!val) return;
+        if (applyStyleToSelection("fontSize", `${val}px`)) updateCanvas();
+        else alert("먼저 본문에서 글자를 드래그해 선택해 주세요.");
+    });
+}
+
 document.getElementById("btnQuoteLine").addEventListener("click", () => {
     let selection = window.getSelection();
     if (!selection.rangeCount) return;
