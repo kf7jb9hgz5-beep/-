@@ -225,7 +225,7 @@ function updateCanvas() {
         let infoHTML = "";
 
         if (titleVal || creatorVal) {
-            infoHTML += `<span class="info-dash" style="color: ${baseColor}; font-size: ${infoSize}px; margin-right: 6px;">⚆</span>`;
+            infoHTML += `<span class="info-dash" style="color: ${baseColor}; font-size: ${infoSize}px; margin-right: 6px;">ⓐ</span>`;
             if (titleVal && creatorVal) {
                 infoHTML +=
                     `<span class="info-text-node" style="color: ${baseColor}; font-family: ${fontName}; font-size: ${infoSize}px;">${titleVal}</span>` +
