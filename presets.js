@@ -13,6 +13,8 @@ window.stepInput = function (id, step, precision) {
 };
 
 // 현재 모든 설정값을 하나의 객체로 캡처
+// 주의: 발췌문/타이틀/저자 등 "내용(텍스트)"은 절대 포함하지 않는다. (els.editor, els.titleInput,
+// els.creatorInput, els.headingTitleInput, els.headingSubtitleInput 는 의도적으로 제외)
 function getPresetSnapshot() {
     return {
         ratioSelect: els.ratioSelect.value,
@@ -34,6 +36,10 @@ function getPresetSnapshot() {
         lineHeight: els.lineHeight.value,
         paraSpacing: els.paraSpacing.value,
         fontScaleX: els.fontScaleX.value,
+        infoFontSize: els.infoFontSize?.value,
+        columnToggle: els.columnToggle?.checked,
+        columnSplitIndex: els.columnSplitIndex?.value,
+        columnGap: els.columnGap?.value,
         globalTextColor: els.globalTextColor.value,
         subTextColor: els.subTextColor.value,
         hlColorA: els.hlColorA.value,
@@ -82,6 +88,19 @@ function applyPresetSnapshot(data) {
     els.lineHeight.value = data.lineHeight ?? els.lineHeight.value;
     els.paraSpacing.value = data.paraSpacing ?? els.paraSpacing.value;
     els.fontScaleX.value = data.fontScaleX ?? els.fontScaleX.value;
+
+    if (els.infoFontSize) els.infoFontSize.value = data.infoFontSize ?? els.infoFontSize.value;
+    if (els.columnToggle) els.columnToggle.checked = data.columnToggle ?? els.columnToggle.checked;
+    if (els.columnSplitIndex) els.columnSplitIndex.value = data.columnSplitIndex ?? els.columnSplitIndex.value;
+    if (els.columnGap) els.columnGap.value = data.columnGap ?? els.columnGap.value;
+
+    if (els.columnToggle) {
+        const show = els.columnToggle.checked ? "flex" : "none";
+        const splitArea = document.getElementById("columnSplitArea");
+        const gapArea = document.getElementById("columnGapArea");
+        if (splitArea) splitArea.style.display = show;
+        if (gapArea) gapArea.style.display = show;
+    }
 
     els.globalTextColor.value = data.globalTextColor ?? els.globalTextColor.value;
     els.subTextColor.value = data.subTextColor ?? els.subTextColor.value;
