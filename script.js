@@ -587,16 +587,14 @@ function applyInvertToSelection() {
     return true;
 }
 
+document.getElementById("btnInvertHighlight").addEventListener("click", () => {
+    if (applyInvertToSelection()) updateCanvas();
+    else alert("먼저 본문에서 글자를 드래그해 선택해 주세요.");
+});
+
 document.getElementById("selHighlight").addEventListener("change", function () {
     const val = this.value;
     if (!val) return;
-
-    if (val === "INVERT") {
-        this.value = "";
-        if (applyInvertToSelection()) updateCanvas();
-        else alert("먼저 본문에서 글자를 드래그해 선택해 주세요.");
-        return;
-    }
 
     let color = "#fef08a";
     if (val === "A") color = els.hlColorA.value;

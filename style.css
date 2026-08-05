@@ -459,7 +459,7 @@ body.mobile-theme {
     appearance: none;
     background: none;
     border: none;
-    padding: 9px 22px 9px 12px;
+    padding: 9px 20px 9px 12px;
     font-size: 13px;
     font-weight: 500;
     color: var(--text-muted);
@@ -467,11 +467,22 @@ body.mobile-theme {
     cursor: pointer;
     outline: none;
     transition: var(--transition-base);
+    max-width: 78px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 8px center;
+    background-position: right 6px center;
     background-size: 10px;
+}
+
+#selFontSize.toolbar-select {
+    max-width: 56px;
+}
+
+#selAlign.toolbar-select {
+    max-width: 62px;
 }
 
 .editor-toolbar.pill-group .toolbar-select option {
