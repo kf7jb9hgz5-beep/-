@@ -541,9 +541,63 @@ document.getElementById("btnSubText").addEventListener("click", () => {
     updateCanvas();
 });
 
+// rgb(...)/rgba(...) 문자열을 받아 밝기를 계산해 대비되는 흑/백을 반환
+function getContrastColor(colorStr) {
+    const nums = (colorStr || "").match(/[\d.]+/g);
+    if (!nums || nums.length < 3) return "#ffffff";
+    const [r, g, b] = nums.map(Number);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.55 ? "#000000" : "#ffffff";
+}
+
+// 선택 영역의 각 글자가 가진 "현재 글자색"을 그대로 배경색으로 바꾸고,
+// 글자색은 그 배경과 대비되는 색(흰/검)으로 반전시킨다.
+function applyInvertToSelection() {
+    const selection = window.getSelection();
+    if (!selection.rangeCount || selection.isCollapsed) return false;
+    if (!els.editor.contains(selection.anchorNode)) return false;
+
+    document.execCommand("fontSize", false, "7");
+
+    const markers = els.editor.querySelectorAll('font[size="7"]');
+    markers.forEach((marker) => {
+        const walker = document.createTreeWalker(marker, NodeFilter.SHOW_TEXT, null, false);
+        const textNodes = [];
+        let node;
+        while ((node = walker.nextNode())) textNodes.push(node);
+
+        textNodes.forEach((textNode) => {
+            if (!textNode.nodeValue || !textNode.parentElement) return;
+            const computedColor = window.getComputedStyle(textNode.parentElement).color;
+            const span = document.createElement("span");
+            span.style.backgroundColor = computedColor;
+            span.style.color = getContrastColor(computedColor);
+            span.style.display = "inline";
+            span.style.boxDecorationBreak = "clone";
+            span.style.webkitBoxDecorationBreak = "clone";
+            textNode.parentNode.insertBefore(span, textNode);
+            span.appendChild(textNode);
+        });
+
+        const parent = marker.parentNode;
+        while (marker.firstChild) parent.insertBefore(marker.firstChild, marker);
+        parent.removeChild(marker);
+    });
+
+    return true;
+}
+
 document.getElementById("selHighlight").addEventListener("change", function () {
     const val = this.value;
     if (!val) return;
+
+    if (val === "INVERT") {
+        this.value = "";
+        if (applyInvertToSelection()) updateCanvas();
+        else alert("먼저 본문에서 글자를 드래그해 선택해 주세요.");
+        return;
+    }
+
     let color = "#fef08a";
     if (val === "A") color = els.hlColorA.value;
     if (val === "B") color = els.hlColorB.value;
