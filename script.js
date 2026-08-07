@@ -737,7 +737,12 @@ document.addEventListener("DOMContentLoaded", () => {
         updateCanvas();
     });
 
-    els.editor.addEventListener("input", updateCanvas);
+    els.editor.addEventListener("input", () => {
+        if (typeof currentImageBlock !== "undefined" && currentImageBlock && !els.editor.contains(currentImageBlock)) {
+            deselectImageBlock();
+        }
+        updateCanvas();
+    });
     if (typeof renderPresets === "function") renderPresets();
 
     if (els.columnToggle) {
@@ -908,6 +913,13 @@ function normalizeParagraphs(container) {
                 paragraphs.push(node.cloneNode(true));
                 paragraphAligns.push(node.style.textAlign || null);
                 flushParagraph();
+            } else if (node.classList.contains("editor-image-block")) {
+                flushParagraph();
+                const imgClone = node.cloneNode(true);
+                imgClone.classList.remove("selected");
+                paragraphs.push(imgClone);
+                paragraphAligns.push(null);
+                flushParagraph();
             } else if (tagName === "DIV" || tagName === "P" || /^H[1-6]$/.test(tagName)) {
                 flushParagraph();
                 const prevAlign = currentAlign;
@@ -936,8 +948,8 @@ function normalizeParagraphs(container) {
     container.innerHTML = "";
     paragraphs.forEach((pNodes, idx) => {
         const align = paragraphAligns[idx];
-        if (pNodes instanceof HTMLElement && pNodes.classList.contains("dialogue-line")) {
-            if (align) pNodes.style.textAlign = align;
+        if (pNodes instanceof HTMLElement && (pNodes.classList.contains("dialogue-line") || pNodes.classList.contains("editor-image-block"))) {
+            if (align && !pNodes.classList.contains("editor-image-block")) pNodes.style.textAlign = align;
             container.appendChild(pNodes);
         } else {
             const newDiv = document.createElement("div");
@@ -950,3 +962,261 @@ function normalizeParagraphs(container) {
 
     if (container.childNodes.length === 0) container.innerHTML = "<div><br></div>";
 }
+
+/* ========================================================================
+   본문 내 사진 삽입 기능
+   - 편집기(#textEditor) 안에 이미지 블록을 삽입하고,
+   - 너비/높이/채우기 방식/정렬/모서리 둥글기를 자유롭게 조절할 수 있게 함.
+   - 삽입된 블록은 normalizeParagraphs()에서 dialogue-line과 동일하게
+     "그대로 보존해야 하는 블록"으로 취급되어 미리보기(canvas)에도 그대로 반영됨.
+   ======================================================================== */
+
+let currentImageBlock = null;
+
+function applyImageAlign(block, align) {
+    block.dataset.align = align;
+    if (align === "left") {
+        block.style.marginLeft = "0";
+        block.style.marginRight = "auto";
+    } else if (align === "right") {
+        block.style.marginLeft = "auto";
+        block.style.marginRight = "0";
+    } else {
+        block.style.marginLeft = "auto";
+        block.style.marginRight = "auto";
+    }
+}
+
+function selectImageBlock(block) {
+    if (currentImageBlock && currentImageBlock !== block) {
+        currentImageBlock.classList.remove("selected");
+    }
+    currentImageBlock = block;
+    block.classList.add("selected");
+
+    const panel = document.getElementById("imageBlockPanel");
+    if (!panel) return;
+    panel.style.display = "flex";
+
+    const widthInput = document.getElementById("imgBlockWidth");
+    const heightInput = document.getElementById("imgBlockHeight");
+    const fitSelect = document.getElementById("imgBlockFit");
+    const radiusInput = document.getElementById("imgBlockRadius");
+    const lockRatio = document.getElementById("imgBlockLockRatio");
+
+    if (widthInput) widthInput.value = parseInt(block.style.width, 10) || block.offsetWidth || 240;
+    if (heightInput) heightInput.value = parseInt(block.style.height, 10) || block.offsetHeight || 240;
+    if (fitSelect) fitSelect.value = block.dataset.fit || "cover";
+    if (radiusInput) radiusInput.value = parseInt(block.style.borderRadius, 10) || 0;
+    if (lockRatio) lockRatio.checked = block.dataset.lockRatio === "1";
+
+    const align = block.dataset.align || "center";
+    document.querySelectorAll("#imgBlockAlignGroup button").forEach((b) => {
+        b.classList.toggle("active", b.getAttribute("data-value") === align);
+    });
+}
+
+function deselectImageBlock() {
+    if (currentImageBlock) currentImageBlock.classList.remove("selected");
+    currentImageBlock = null;
+    const panel = document.getElementById("imageBlockPanel");
+    if (panel) panel.style.display = "none";
+}
+
+function applyLockedRatio(changedProp) {
+    const lockRatio = document.getElementById("imgBlockLockRatio");
+    if (!currentImageBlock || !lockRatio || !lockRatio.checked) return;
+    const ratio = parseFloat(currentImageBlock.dataset.naturalRatio) || 1;
+    const widthInput = document.getElementById("imgBlockWidth");
+    const heightInput = document.getElementById("imgBlockHeight");
+    if (changedProp === "width") {
+        heightInput.value = Math.max(20, Math.round((parseFloat(widthInput.value) || 0) / ratio));
+    } else if (changedProp === "height") {
+        widthInput.value = Math.max(20, Math.round((parseFloat(heightInput.value) || 0) * ratio));
+    }
+}
+
+function applyPanelToBlock() {
+    if (!currentImageBlock) return;
+
+    const widthInput = document.getElementById("imgBlockWidth");
+    const heightInput = document.getElementById("imgBlockHeight");
+    const w = Math.max(20, parseInt(widthInput.value, 10) || 20);
+    const h = Math.max(20, parseInt(heightInput.value, 10) || 20);
+    currentImageBlock.style.width = `${w}px`;
+    currentImageBlock.style.height = `${h}px`;
+
+    const fitSelect = document.getElementById("imgBlockFit");
+    if (fitSelect) {
+        currentImageBlock.dataset.fit = fitSelect.value;
+        const img = currentImageBlock.querySelector("img");
+        if (img) img.style.objectFit = fitSelect.value;
+    }
+
+    const radiusInput = document.getElementById("imgBlockRadius");
+    if (radiusInput) {
+        const radius = Math.max(0, parseInt(radiusInput.value, 10) || 0);
+        currentImageBlock.style.borderRadius = `${radius}px`;
+    }
+
+    updateCanvas();
+}
+
+function insertImageBlock(dataURL, naturalW, naturalH) {
+    const editor = els.editor;
+    editor.focus();
+
+    const editorWidth = editor.clientWidth || 300;
+    const maxW = Math.min(editorWidth - 4, 320);
+    let w = naturalW ? Math.min(maxW, naturalW) : maxW;
+    let h = naturalW && naturalH ? Math.round((w * naturalH) / naturalW) : w;
+
+    const block = document.createElement("div");
+    block.className = "editor-image-block";
+    block.setAttribute("contenteditable", "false");
+    block.dataset.fit = "cover";
+    block.dataset.align = "center";
+    block.dataset.lockRatio = "0";
+    block.dataset.naturalRatio = naturalW && naturalH ? (naturalW / naturalH).toFixed(6) : "1";
+    block.style.width = `${w}px`;
+    block.style.height = `${h}px`;
+    block.style.borderRadius = "8px";
+    applyImageAlign(block, "center");
+
+    const img = document.createElement("img");
+    img.src = dataURL;
+    img.alt = "";
+    img.draggable = false;
+    img.style.objectFit = "cover";
+    block.appendChild(img);
+
+    const selection = window.getSelection();
+    let range;
+    if (selection && selection.rangeCount && editor.contains(selection.anchorNode)) {
+        range = selection.getRangeAt(0);
+    } else {
+        range = document.createRange();
+        range.selectNodeContents(editor);
+        range.collapse(false);
+    }
+    range.deleteContents();
+    range.insertNode(block);
+
+    if (!block.nextSibling) {
+        const spacer = document.createElement("div");
+        spacer.appendChild(document.createElement("br"));
+        block.after(spacer);
+    }
+
+    const newRange = document.createRange();
+    newRange.setStartAfter(block);
+    newRange.collapse(true);
+    if (selection) {
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+    }
+
+    updateCanvas();
+    selectImageBlock(block);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const btnInsertImage = document.getElementById("btnInsertImage");
+    const imageInsertInput = document.getElementById("imageInsertInput");
+
+    if (btnInsertImage && imageInsertInput) {
+        btnInsertImage.addEventListener("click", () => {
+            imageInsertInput.value = "";
+            imageInsertInput.click();
+        });
+
+        imageInsertInput.addEventListener("change", function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (!file.type || !file.type.startsWith("image/")) {
+                alert("이미지 파일만 삽입할 수 있어요.");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const dataURL = event.target.result;
+                const tempImg = new Image();
+                tempImg.onload = () => insertImageBlock(dataURL, tempImg.naturalWidth, tempImg.naturalHeight);
+                tempImg.onerror = () => insertImageBlock(dataURL, 0, 0);
+                tempImg.src = dataURL;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    els.editor.addEventListener("click", (e) => {
+        const block = e.target.closest(".editor-image-block");
+        if (block && els.editor.contains(block)) {
+            selectImageBlock(block);
+        } else {
+            deselectImageBlock();
+        }
+    });
+
+    document.addEventListener("click", (e) => {
+        const panel = document.getElementById("imageBlockPanel");
+        if (!panel || panel.style.display === "none") return;
+        if (panel.contains(e.target) || els.editor.contains(e.target)) return;
+        deselectImageBlock();
+    });
+
+    ["imgBlockWidth", "imgBlockHeight", "imgBlockFit", "imgBlockRadius"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener("input", () => {
+            if (id === "imgBlockWidth") applyLockedRatio("width");
+            if (id === "imgBlockHeight") applyLockedRatio("height");
+            applyPanelToBlock();
+        });
+        el.addEventListener("change", applyPanelToBlock);
+    });
+
+    const lockRatioEl = document.getElementById("imgBlockLockRatio");
+    if (lockRatioEl) {
+        lockRatioEl.addEventListener("change", function () {
+            if (!currentImageBlock) return;
+            currentImageBlock.dataset.lockRatio = this.checked ? "1" : "0";
+        });
+    }
+
+    document.querySelectorAll('[data-img-step]').forEach((btn) => {
+        btn.addEventListener("click", () => {
+            if (!currentImageBlock) return;
+            const prop = btn.getAttribute("data-img-step");
+            const step = parseInt(btn.getAttribute("data-step"), 10) || 0;
+            const inputId = prop === "width" ? "imgBlockWidth" : prop === "height" ? "imgBlockHeight" : "imgBlockRadius";
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const minVal = prop === "radius" ? 0 : 20;
+            const newVal = Math.max(minVal, (parseInt(input.value, 10) || 0) + step);
+            input.value = newVal;
+            input.dispatchEvent(new Event("input", { bubbles: true }));
+        });
+    });
+
+    document.querySelectorAll("#imgBlockAlignGroup button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            if (!currentImageBlock) return;
+            document.querySelectorAll("#imgBlockAlignGroup button").forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+            applyImageAlign(currentImageBlock, btn.getAttribute("data-value"));
+            updateCanvas();
+        });
+    });
+
+    const btnRemoveImageBlock = document.getElementById("btnRemoveImageBlock");
+    if (btnRemoveImageBlock) {
+        btnRemoveImageBlock.addEventListener("click", () => {
+            if (!currentImageBlock) return;
+            const toRemove = currentImageBlock;
+            deselectImageBlock();
+            toRemove.remove();
+            updateCanvas();
+        });
+    }
+});

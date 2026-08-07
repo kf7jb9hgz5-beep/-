@@ -95,9 +95,65 @@
                             <option value="32">32px</option>
                         </select>
                         <button id="btnClearHighlight" title="선택 효과 지우기" class="text-danger">지우기</button>
+                        <button id="btnInsertImage" title="사진 삽입">사진</button>
+                        <input type="file" id="imageInsertInput" accept="image/*" style="display: none" />
                     </div>
                 </div>
                 <div id="textEditor" contenteditable="true" placeholder="이곳에 발췌할 문구를 입력하거나 드래그 후 상단 효과 버튼을 적용하세요."></div>
+
+                <div class="image-block-panel" id="imageBlockPanel" style="display: none">
+                    <div class="image-block-panel-header">
+                        <span>선택한 사진 설정</span>
+                        <button type="button" id="btnRemoveImageBlock" class="text-danger">삭제</button>
+                    </div>
+                    <div class="control-minimal-row">
+                        <label for="imgBlockWidth">너비 (px)</label>
+                        <div class="stepper-minimal">
+                            <button type="button" data-img-step="width" data-step="-10">-</button>
+                            <input type="number" id="imgBlockWidth" value="240" />
+                            <button type="button" data-img-step="width" data-step="10">+</button>
+                        </div>
+                    </div>
+                    <div class="control-minimal-row">
+                        <label for="imgBlockHeight">높이 (px)</label>
+                        <div class="stepper-minimal">
+                            <button type="button" data-img-step="height" data-step="-10">-</button>
+                            <input type="number" id="imgBlockHeight" value="240" />
+                            <button type="button" data-img-step="height" data-step="10">+</button>
+                        </div>
+                    </div>
+                    <div class="control-minimal-row">
+                        <label for="imgBlockLockRatio">비율 고정</label>
+                        <div class="checkbox-minimal-group">
+                            <label><input type="checkbox" id="imgBlockLockRatio" /> 원본 비율 유지하며 조절</label>
+                        </div>
+                    </div>
+                    <div class="control-minimal-row">
+                        <label for="imgBlockFit">채우기 방식</label>
+                        <select id="imgBlockFit">
+                            <option value="cover">채우기 (크롭)</option>
+                            <option value="contain">맞춤 (여백 포함)</option>
+                            <option value="fill">늘리기 (비율 무시)</option>
+                        </select>
+                    </div>
+                    <div class="control-minimal-row">
+                        <label>정렬</label>
+                        <div class="segmented-control" id="imgBlockAlignGroup">
+                            <button type="button" data-value="left">좌</button>
+                            <button type="button" data-value="center" class="active">중</button>
+                            <button type="button" data-value="right">우</button>
+                        </div>
+                    </div>
+                    <div class="control-minimal-row">
+                        <label for="imgBlockRadius">모서리 둥글기 (px)</label>
+                        <div class="stepper-minimal">
+                            <button type="button" data-img-step="radius" data-step="-2">-</button>
+                            <input type="number" id="imgBlockRadius" value="8" />
+                            <button type="button" data-img-step="radius" data-step="2">+</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="meta-input-inline">
                     <div class="input-minimal">
                         <label for="titleInput">타이틀</label>

@@ -517,6 +517,77 @@ body.mobile-theme {
     opacity: 0.7;
 }
 
+/* ===== 본문 내 사진 삽입 기능 ===== */
+.editor-image-block {
+    position: relative;
+    overflow: hidden;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    max-width: 100%;
+    line-height: 0;
+}
+
+.editor-image-block img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+#textEditor .editor-image-block {
+    cursor: pointer;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    transition: outline-color 0.15s ease;
+}
+
+#textEditor .editor-image-block:hover {
+    outline-color: rgba(37, 99, 235, 0.3);
+}
+
+#textEditor .editor-image-block.selected {
+    outline-color: var(--accent-color);
+}
+
+.image-block-panel {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--bg-main);
+    padding: 4px 14px 0;
+}
+
+.image-block-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.image-block-panel-header button {
+    background: none;
+    border: none;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+}
+
+.image-block-panel-header button.text-danger {
+    color: var(--danger-color);
+}
+
+.image-block-panel-header button.text-danger:active {
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
 .meta-input-inline {
     display: flex;
     flex-direction: column;
