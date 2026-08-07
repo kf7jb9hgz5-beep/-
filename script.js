@@ -1003,12 +1003,18 @@ function selectImageBlock(block) {
     const fitSelect = document.getElementById("imgBlockFit");
     const radiusInput = document.getElementById("imgBlockRadius");
     const lockRatio = document.getElementById("imgBlockLockRatio");
+    const zoomInput = document.getElementById("imgBlockZoom");
+    const posXInput = document.getElementById("imgBlockPosX");
+    const posYInput = document.getElementById("imgBlockPosY");
 
     if (widthInput) widthInput.value = parseInt(block.style.width, 10) || block.offsetWidth || 240;
     if (heightInput) heightInput.value = parseInt(block.style.height, 10) || block.offsetHeight || 240;
     if (fitSelect) fitSelect.value = block.dataset.fit || "cover";
     if (radiusInput) radiusInput.value = parseInt(block.style.borderRadius, 10) || 0;
     if (lockRatio) lockRatio.checked = block.dataset.lockRatio === "1";
+    if (zoomInput) zoomInput.value = block.dataset.zoom || "100";
+    if (posXInput) posXInput.value = block.dataset.posX || "50";
+    if (posYInput) posYInput.value = block.dataset.posY || "50";
 
     const align = block.dataset.align || "center";
     document.querySelectorAll("#imgBlockAlignGroup button").forEach((b) => {
@@ -1036,6 +1042,17 @@ function applyLockedRatio(changedProp) {
     }
 }
 
+function applyImageCrop(block) {
+    if (!block) return;
+    const img = block.querySelector("img");
+    if (!img) return;
+    const zoom = Math.max(100, parseInt(block.dataset.zoom, 10) || 100);
+    const posX = Math.min(100, Math.max(0, parseInt(block.dataset.posX, 10) || 50));
+    const posY = Math.min(100, Math.max(0, parseInt(block.dataset.posY, 10) || 50));
+    img.style.transformOrigin = `${posX}% ${posY}%`;
+    img.style.transform = `scale(${zoom / 100})`;
+}
+
 function applyPanelToBlock() {
     if (!currentImageBlock) return;
 
@@ -1059,6 +1076,14 @@ function applyPanelToBlock() {
         currentImageBlock.style.borderRadius = `${radius}px`;
     }
 
+    const zoomInput = document.getElementById("imgBlockZoom");
+    const posXInput = document.getElementById("imgBlockPosX");
+    const posYInput = document.getElementById("imgBlockPosY");
+    if (zoomInput) currentImageBlock.dataset.zoom = zoomInput.value;
+    if (posXInput) currentImageBlock.dataset.posX = posXInput.value;
+    if (posYInput) currentImageBlock.dataset.posY = posYInput.value;
+    applyImageCrop(currentImageBlock);
+
     updateCanvas();
 }
 
@@ -1080,7 +1105,10 @@ function insertImageBlock(dataURL, naturalW, naturalH) {
     block.dataset.naturalRatio = naturalW && naturalH ? (naturalW / naturalH).toFixed(6) : "1";
     block.style.width = `${w}px`;
     block.style.height = `${h}px`;
-    block.style.borderRadius = "8px";
+    block.style.borderRadius = "0px";
+    block.dataset.zoom = "100";
+    block.dataset.posX = "50";
+    block.dataset.posY = "50";
     applyImageAlign(block, "center");
 
     const img = document.createElement("img");
@@ -1088,6 +1116,8 @@ function insertImageBlock(dataURL, naturalW, naturalH) {
     img.alt = "";
     img.draggable = false;
     img.style.objectFit = "cover";
+    img.style.transformOrigin = "50% 50%";
+    img.style.transform = "scale(1)";
     block.appendChild(img);
 
     const selection = window.getSelection();
@@ -1165,7 +1195,7 @@ document.addEventListener("DOMContentLoaded", () => {
         deselectImageBlock();
     });
 
-    ["imgBlockWidth", "imgBlockHeight", "imgBlockFit", "imgBlockRadius"].forEach((id) => {
+    ["imgBlockWidth", "imgBlockHeight", "imgBlockFit", "imgBlockRadius", "imgBlockZoom", "imgBlockPosX", "imgBlockPosY"].forEach((id) => {
         const el = document.getElementById(id);
         if (!el) return;
         el.addEventListener("input", () => {
@@ -1175,6 +1205,20 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         el.addEventListener("change", applyPanelToBlock);
     });
+
+    const btnResetCrop = document.getElementById("btnResetCrop");
+    if (btnResetCrop) {
+        btnResetCrop.addEventListener("click", () => {
+            if (!currentImageBlock) return;
+            const zoomInput = document.getElementById("imgBlockZoom");
+            const posXInput = document.getElementById("imgBlockPosX");
+            const posYInput = document.getElementById("imgBlockPosY");
+            if (zoomInput) zoomInput.value = 100;
+            if (posXInput) posXInput.value = 50;
+            if (posYInput) posYInput.value = 50;
+            applyPanelToBlock();
+        });
+    }
 
     const lockRatioEl = document.getElementById("imgBlockLockRatio");
     if (lockRatioEl) {
