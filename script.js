@@ -998,6 +998,9 @@ function selectImageBlock(block) {
     const panel = document.getElementById("imageBlockPanel");
     if (!panel) return;
     panel.style.display = "flex";
+    requestAnimationFrame(() => {
+        panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
 
     const widthInput = document.getElementById("imgBlockWidth");
     const heightInput = document.getElementById("imgBlockHeight");
@@ -1160,20 +1163,20 @@ function attachImageBlockInteractions(block) {
     let panning = false;
     let panStartX, panStartY, startPosX, startPosY;
 
-    img.addEventListener("pointerdown", (e) => {
+    block.addEventListener("pointerdown", (e) => {
         if (!block.classList.contains("selected")) return;
         const { maxX, maxY } = getMaxPan(block);
         if (maxX <= 0 && maxY <= 0) return;
         e.preventDefault();
         panning = true;
-        try { img.setPointerCapture(e.pointerId); } catch (err) {}
+        try { block.setPointerCapture(e.pointerId); } catch (err) {}
         panStartX = e.clientX;
         panStartY = e.clientY;
         startPosX = parseFloat(block.dataset.posX) || 50;
         startPosY = parseFloat(block.dataset.posY) || 50;
     });
 
-    img.addEventListener("pointermove", (e) => {
+    block.addEventListener("pointermove", (e) => {
         if (!panning) return;
         e.preventDefault();
         const { maxX, maxY } = getMaxPan(block);
@@ -1199,11 +1202,11 @@ function attachImageBlockInteractions(block) {
     const endPan = (e) => {
         if (!panning) return;
         panning = false;
-        try { img.releasePointerCapture(e.pointerId); } catch (err) {}
+        try { block.releasePointerCapture(e.pointerId); } catch (err) {}
         updateCanvas();
     };
-    img.addEventListener("pointerup", endPan);
-    img.addEventListener("pointercancel", endPan);
+    block.addEventListener("pointerup", endPan);
+    block.addEventListener("pointercancel", endPan);
 }
 
 function insertImageBlock(dataURL, naturalW, naturalH) {
