@@ -917,6 +917,7 @@ function normalizeParagraphs(container) {
                 flushParagraph();
                 const imgClone = node.cloneNode(true);
                 imgClone.classList.remove("selected");
+                imgClone.querySelectorAll(".no-export").forEach((el) => el.remove());
                 paragraphs.push(imgClone);
                 paragraphAligns.push(null);
                 flushParagraph();
@@ -1042,15 +1043,30 @@ function applyLockedRatio(changedProp) {
     }
 }
 
+function getMaxPan(block) {
+    const zoom = Math.max(100, parseInt(block.dataset.zoom, 10) || 100) / 100;
+    const w = parseInt(block.style.width, 10) || block.offsetWidth || 1;
+    const h = parseInt(block.style.height, 10) || block.offsetHeight || 1;
+    return {
+        maxX: (w * (zoom - 1)) / 2,
+        maxY: (h * (zoom - 1)) / 2,
+        zoom
+    };
+}
+
 function applyImageCrop(block) {
     if (!block) return;
     const img = block.querySelector("img");
     if (!img) return;
-    const zoom = Math.max(100, parseInt(block.dataset.zoom, 10) || 100);
-    const posX = Math.min(100, Math.max(0, parseInt(block.dataset.posX, 10) || 50));
-    const posY = Math.min(100, Math.max(0, parseInt(block.dataset.posY, 10) || 50));
-    img.style.transformOrigin = `${posX}% ${posY}%`;
-    img.style.transform = `scale(${zoom / 100})`;
+    const { maxX, maxY, zoom } = getMaxPan(block);
+    const posX = Math.min(100, Math.max(0, parseFloat(block.dataset.posX) || 50));
+    const posY = Math.min(100, Math.max(0, parseFloat(block.dataset.posY) || 50));
+    const panXpx = ((posX - 50) / 50) * maxX;
+    const panYpx = ((posY - 50) / 50) * maxY;
+    const tx = zoom ? panXpx / zoom : 0;
+    const ty = zoom ? panYpx / zoom : 0;
+    img.style.transformOrigin = "center center";
+    img.style.transform = `scale(${zoom}) translate(${tx}px, ${ty}px)`;
 }
 
 function applyPanelToBlock() {
@@ -1087,6 +1103,109 @@ function applyPanelToBlock() {
     updateCanvas();
 }
 
+function attachImageBlockInteractions(block) {
+    const handle = block.querySelector(".image-resize-handle");
+    const img = block.querySelector("img");
+    if (!handle || !img) return;
+
+    // ---- 모서리 드래그 = 박스 크기 조절 ----
+    let resizing = false;
+    let startX, startY, startW, startH, lockRatio, ratio;
+
+    handle.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        resizing = true;
+        try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+        startX = e.clientX;
+        startY = e.clientY;
+        startW = parseInt(block.style.width, 10) || block.offsetWidth;
+        startH = parseInt(block.style.height, 10) || block.offsetHeight;
+        const lockEl = document.getElementById("imgBlockLockRatio");
+        lockRatio = lockEl ? lockEl.checked : false;
+        ratio = parseFloat(block.dataset.naturalRatio) || startW / startH || 1;
+        selectImageBlock(block);
+    });
+
+    handle.addEventListener("pointermove", (e) => {
+        if (!resizing) return;
+        e.preventDefault();
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        let newW = Math.max(20, Math.round(startW + dx));
+        let newH;
+        if (lockRatio) newH = Math.max(20, Math.round(newW / ratio));
+        else newH = Math.max(20, Math.round(startH + dy));
+
+        block.style.width = `${newW}px`;
+        block.style.height = `${newH}px`;
+        applyImageCrop(block);
+
+        const wInput = document.getElementById("imgBlockWidth");
+        const hInput = document.getElementById("imgBlockHeight");
+        if (wInput) wInput.value = newW;
+        if (hInput) hInput.value = newH;
+    });
+
+    const endResize = (e) => {
+        if (!resizing) return;
+        resizing = false;
+        try { handle.releasePointerCapture(e.pointerId); } catch (err) {}
+        updateCanvas();
+    };
+    handle.addEventListener("pointerup", endResize);
+    handle.addEventListener("pointercancel", endResize);
+
+    // ---- 사진 위 드래그 = 크롭 위치(팬) 이동 ----
+    let panning = false;
+    let panStartX, panStartY, startPosX, startPosY;
+
+    img.addEventListener("pointerdown", (e) => {
+        if (!block.classList.contains("selected")) return;
+        const { maxX, maxY } = getMaxPan(block);
+        if (maxX <= 0 && maxY <= 0) return;
+        e.preventDefault();
+        panning = true;
+        try { img.setPointerCapture(e.pointerId); } catch (err) {}
+        panStartX = e.clientX;
+        panStartY = e.clientY;
+        startPosX = parseFloat(block.dataset.posX) || 50;
+        startPosY = parseFloat(block.dataset.posY) || 50;
+    });
+
+    img.addEventListener("pointermove", (e) => {
+        if (!panning) return;
+        e.preventDefault();
+        const { maxX, maxY } = getMaxPan(block);
+        const dx = e.clientX - panStartX;
+        const dy = e.clientY - panStartY;
+        let newPosX = startPosX;
+        let newPosY = startPosY;
+        if (maxX > 0) newPosX = startPosX + (dx * 50) / maxX;
+        if (maxY > 0) newPosY = startPosY + (dy * 50) / maxY;
+        newPosX = Math.min(100, Math.max(0, newPosX));
+        newPosY = Math.min(100, Math.max(0, newPosY));
+
+        block.dataset.posX = newPosX;
+        block.dataset.posY = newPosY;
+        applyImageCrop(block);
+
+        const xInput = document.getElementById("imgBlockPosX");
+        const yInput = document.getElementById("imgBlockPosY");
+        if (xInput) xInput.value = Math.round(newPosX);
+        if (yInput) yInput.value = Math.round(newPosY);
+    });
+
+    const endPan = (e) => {
+        if (!panning) return;
+        panning = false;
+        try { img.releasePointerCapture(e.pointerId); } catch (err) {}
+        updateCanvas();
+    };
+    img.addEventListener("pointerup", endPan);
+    img.addEventListener("pointercancel", endPan);
+}
+
 function insertImageBlock(dataURL, naturalW, naturalH) {
     const editor = els.editor;
     editor.focus();
@@ -1119,6 +1238,12 @@ function insertImageBlock(dataURL, naturalW, naturalH) {
     img.style.transformOrigin = "50% 50%";
     img.style.transform = "scale(1)";
     block.appendChild(img);
+
+    const handle = document.createElement("div");
+    handle.className = "image-resize-handle no-export";
+    block.appendChild(handle);
+
+    attachImageBlockInteractions(block);
 
     const selection = window.getSelection();
     let range;
