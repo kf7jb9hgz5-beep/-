@@ -1203,6 +1203,13 @@ input[type="file"]::file-selector-button {
 }
 
 /* ---- 사진 자르기(크롭) 오버레이 ---- */
+body.crop-open {
+    overflow: hidden;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+}
+
 .crop-overlay {
     position: fixed;
     inset: 0;
@@ -1211,6 +1218,7 @@ input[type="file"]::file-selector-button {
     display: flex;
     flex-direction: column;
     touch-action: none;
+    overscroll-behavior: none;
 }
 
 .crop-overlay-header {
@@ -1255,6 +1263,7 @@ input[type="file"]::file-selector-button {
     justify-content: center;
     overflow: hidden;
     min-height: 0;
+    touch-action: none;
 }
 
 .crop-stage img {
@@ -1264,12 +1273,14 @@ input[type="file"]::file-selector-button {
     user-select: none;
     -webkit-user-drag: none;
     pointer-events: none;
+    will-change: left, top, width, height;
 }
 
 .crop-dim {
     position: absolute;
     background-color: rgba(0, 0, 0, 0.6);
     pointer-events: none;
+    will-change: left, top, width, height;
 }
 
 .crop-box {
@@ -1278,6 +1289,7 @@ input[type="file"]::file-selector-button {
     box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
     touch-action: none;
     cursor: move;
+    will-change: left, top, width, height;
 }
 
 .crop-grid-line {
@@ -1304,45 +1316,23 @@ input[type="file"]::file-selector-button {
 .crop-grid-h1 { top: 33.333%; }
 .crop-grid-h2 { top: 66.666%; }
 
-.crop-handle {
-    position: absolute;
-    width: 26px;
-    height: 26px;
-    touch-action: none;
-    z-index: 5;
-}
-
-.crop-handle::before {
-    content: "";
-    position: absolute;
-    width: 18px;
-    height: 18px;
-    background-color: #ffffff;
-    border-radius: 50%;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-}
-
-.crop-handle-tl { top: -13px; left: -13px; cursor: nwse-resize; }
-.crop-handle-tr { top: -13px; right: -13px; cursor: nesw-resize; }
-.crop-handle-bl { bottom: -13px; left: -13px; cursor: nesw-resize; }
-.crop-handle-br { bottom: -13px; right: -13px; cursor: nwse-resize; }
-
 .crop-overlay-footer {
     flex: 0 0 auto;
-    padding: 14px;
+    padding: 14px 20px;
     padding-bottom: max(14px, env(safe-area-inset-bottom));
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
-.crop-overlay-footer .segmented-control {
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+.crop-size-label {
+    color: #e2e8f0;
+    font-size: 13px;
+    font-weight: 600;
+    flex: 0 0 auto;
 }
 
-.crop-overlay-footer .segmented-control button {
-    color: #cbd5e1;
-}
-
-.crop-overlay-footer .segmented-control button.active {
-    background-color: #ffffff;
-    color: #0f172a;
+.crop-overlay-footer input[type="range"] {
+    flex: 1 1 auto;
+    accent-color: #ffffff;
 }

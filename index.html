@@ -107,37 +107,16 @@
                         <button type="button" id="btnRemoveImageBlock" class="text-danger">삭제</button>
                     </div>
                     <div class="control-minimal-row">
-                        <label for="imgBlockWidth">너비 (px)</label>
+                        <label for="imgBlockSize">크기 (px)</label>
                         <div class="stepper-minimal">
-                            <button type="button" data-img-step="width" data-step="-10">-</button>
-                            <input type="number" id="imgBlockWidth" value="240" />
-                            <button type="button" data-img-step="width" data-step="10">+</button>
+                            <button type="button" data-img-step="size" data-step="-10">-</button>
+                            <input type="number" id="imgBlockSize" value="240" />
+                            <button type="button" data-img-step="size" data-step="10">+</button>
                         </div>
                     </div>
-                    <div class="control-minimal-row">
-                        <label for="imgBlockHeight">높이 (px)</label>
-                        <div class="stepper-minimal">
-                            <button type="button" data-img-step="height" data-step="-10">-</button>
-                            <input type="number" id="imgBlockHeight" value="240" />
-                            <button type="button" data-img-step="height" data-step="10">+</button>
-                        </div>
-                    </div>
-                    <div class="control-minimal-row">
-                        <label for="imgBlockLockRatio">비율 고정</label>
-                        <div class="checkbox-minimal-group">
-                            <label><input type="checkbox" id="imgBlockLockRatio" /> 원본 비율 유지하며 조절</label>
-                        </div>
-                    </div>
-                    <div class="control-minimal-row">
-                        <label for="imgBlockFit">채우기 방식</label>
-                        <select id="imgBlockFit">
-                            <option value="cover">채우기 (크롭)</option>
-                            <option value="contain">맞춤 (여백 포함)</option>
-                            <option value="fill">늘리기 (비율 무시)</option>
-                        </select>
-                    </div>
+                    <div class="field-hint">사진 비율은 자른 모양 그대로 고정돼요. 숫자로 전체 크기만 키우거나 줄일 수 있어요.</div>
                     <div class="panel-section-title" style="margin-top: 10px; padding-top: 0; border-top: none">사진 자르기</div>
-                    <div class="field-hint">사진 전체를 보면서 자를 영역을 손가락(또는 마우스)으로 자유롭게 조절할 수 있어요.</div>
+                    <div class="field-hint">사진 전체를 보면서 자를 영역을 손가락(또는 마우스)으로 옮기고, 크기 슬라이더로 넓이를 조절하세요.</div>
                     <div class="control-minimal-row">
                         <button type="button" id="btnOpenCrop" class="btn-minimal-save" style="width: 100%">사진 자르기</button>
                     </div>
@@ -603,18 +582,11 @@
                     <div class="crop-grid-line crop-grid-v2"></div>
                     <div class="crop-grid-line crop-grid-h1"></div>
                     <div class="crop-grid-line crop-grid-h2"></div>
-                    <div class="crop-handle crop-handle-tl" data-handle="tl"></div>
-                    <div class="crop-handle crop-handle-tr" data-handle="tr"></div>
-                    <div class="crop-handle crop-handle-bl" data-handle="bl"></div>
-                    <div class="crop-handle crop-handle-br" data-handle="br"></div>
                 </div>
             </div>
             <div class="crop-overlay-footer">
-                <div class="segmented-control" id="cropAspectGroup">
-                    <button type="button" data-aspect="free" class="active">자유</button>
-                    <button type="button" data-aspect="1:1">정사각형</button>
-                    <button type="button" data-aspect="original">원본</button>
-                </div>
+                <label for="cropSizeRange" class="crop-size-label">크기</label>
+                <input type="range" id="cropSizeRange" min="20" max="100" value="80" />
             </div>
         </div>
 

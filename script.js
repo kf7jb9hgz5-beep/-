@@ -1002,17 +1002,11 @@ function selectImageBlock(block) {
         panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
 
-    const widthInput = document.getElementById("imgBlockWidth");
-    const heightInput = document.getElementById("imgBlockHeight");
-    const fitSelect = document.getElementById("imgBlockFit");
+    const sizeInput = document.getElementById("imgBlockSize");
     const radiusInput = document.getElementById("imgBlockRadius");
-    const lockRatio = document.getElementById("imgBlockLockRatio");
 
-    if (widthInput) widthInput.value = parseInt(block.style.width, 10) || block.offsetWidth || 240;
-    if (heightInput) heightInput.value = parseInt(block.style.height, 10) || block.offsetHeight || 240;
-    if (fitSelect) fitSelect.value = block.dataset.fit || "cover";
+    if (sizeInput) sizeInput.value = parseInt(block.style.width, 10) || block.offsetWidth || 240;
     if (radiusInput) radiusInput.value = parseInt(block.style.borderRadius, 10) || 0;
-    if (lockRatio) lockRatio.checked = block.dataset.lockRatio === "1";
 
     const align = block.dataset.align || "center";
     document.querySelectorAll("#imgBlockAlignGroup button").forEach((b) => {
@@ -1027,69 +1021,21 @@ function deselectImageBlock() {
     if (panel) panel.style.display = "none";
 }
 
-function applyLockedRatio(changedProp) {
-    const lockRatio = document.getElementById("imgBlockLockRatio");
-    if (!currentImageBlock || !lockRatio || !lockRatio.checked) return;
-    const ratio = parseFloat(currentImageBlock.dataset.naturalRatio) || 1;
-    const widthInput = document.getElementById("imgBlockWidth");
-    const heightInput = document.getElementById("imgBlockHeight");
-    if (changedProp === "width") {
-        heightInput.value = Math.max(20, Math.round((parseFloat(widthInput.value) || 0) / ratio));
-    } else if (changedProp === "height") {
-        widthInput.value = Math.max(20, Math.round((parseFloat(heightInput.value) || 0) * ratio));
-    }
-}
-
-function getMaxPan(block) {
-    const zoom = Math.max(100, parseInt(block.dataset.zoom, 10) || 100) / 100;
-    const w = parseInt(block.style.width, 10) || block.offsetWidth || 1;
-    const h = parseInt(block.style.height, 10) || block.offsetHeight || 1;
-    return {
-        maxX: (w * (zoom - 1)) / 2,
-        maxY: (h * (zoom - 1)) / 2,
-        zoom
-    };
-}
-
-function applyImageCrop(block) {
-    if (!block) return;
-    const img = block.querySelector("img");
-    if (!img) return;
-    const { maxX, maxY, zoom } = getMaxPan(block);
-    const posX = Math.min(100, Math.max(0, parseFloat(block.dataset.posX) || 50));
-    const posY = Math.min(100, Math.max(0, parseFloat(block.dataset.posY) || 50));
-    const panXpx = ((posX - 50) / 50) * maxX;
-    const panYpx = ((posY - 50) / 50) * maxY;
-    const tx = zoom ? panXpx / zoom : 0;
-    const ty = zoom ? panYpx / zoom : 0;
-    img.style.transformOrigin = "center center";
-    img.style.transform = `scale(${zoom}) translate(${tx}px, ${ty}px)`;
-}
-
 function applyPanelToBlock() {
     if (!currentImageBlock) return;
 
-    const widthInput = document.getElementById("imgBlockWidth");
-    const heightInput = document.getElementById("imgBlockHeight");
-    const w = Math.max(20, parseInt(widthInput.value, 10) || 20);
-    const h = Math.max(20, parseInt(heightInput.value, 10) || 20);
+    const sizeInput = document.getElementById("imgBlockSize");
+    const ratio = parseFloat(currentImageBlock.dataset.naturalRatio) || 1;
+    const w = Math.max(20, parseInt(sizeInput.value, 10) || 20);
+    const h = Math.max(20, Math.round(w / ratio));
     currentImageBlock.style.width = `${w}px`;
     currentImageBlock.style.height = `${h}px`;
-
-    const fitSelect = document.getElementById("imgBlockFit");
-    if (fitSelect) {
-        currentImageBlock.dataset.fit = fitSelect.value;
-        const img = currentImageBlock.querySelector("img");
-        if (img) img.style.objectFit = fitSelect.value;
-    }
 
     const radiusInput = document.getElementById("imgBlockRadius");
     if (radiusInput) {
         const radius = Math.max(0, parseInt(radiusInput.value, 10) || 0);
         currentImageBlock.style.borderRadius = `${radius}px`;
     }
-
-    applyImageCrop(currentImageBlock);
 
     updateCanvas();
 }
@@ -1099,9 +1045,9 @@ function attachImageBlockInteractions(block) {
     const img = block.querySelector("img");
     if (!handle || !img) return;
 
-    // ---- 모서리 드래그 = 박스 크기 조절 ----
+    // ---- 모서리 드래그 = 박스 크기 조절 (항상 비율 고정) ----
     let resizing = false;
-    let startX, startY, startW, startH, lockRatio, ratio;
+    let startX, startW, ratio;
 
     handle.addEventListener("pointerdown", (e) => {
         e.preventDefault();
@@ -1109,12 +1055,8 @@ function attachImageBlockInteractions(block) {
         resizing = true;
         try { handle.setPointerCapture(e.pointerId); } catch (err) {}
         startX = e.clientX;
-        startY = e.clientY;
         startW = parseInt(block.style.width, 10) || block.offsetWidth;
-        startH = parseInt(block.style.height, 10) || block.offsetHeight;
-        const lockEl = document.getElementById("imgBlockLockRatio");
-        lockRatio = lockEl ? lockEl.checked : false;
-        ratio = parseFloat(block.dataset.naturalRatio) || startW / startH || 1;
+        ratio = parseFloat(block.dataset.naturalRatio) || 1;
         selectImageBlock(block);
     });
 
@@ -1122,20 +1064,14 @@ function attachImageBlockInteractions(block) {
         if (!resizing) return;
         e.preventDefault();
         const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
-        let newW = Math.max(20, Math.round(startW + dx));
-        let newH;
-        if (lockRatio) newH = Math.max(20, Math.round(newW / ratio));
-        else newH = Math.max(20, Math.round(startH + dy));
+        const newW = Math.max(20, Math.round(startW + dx));
+        const newH = Math.max(20, Math.round(newW / ratio));
 
         block.style.width = `${newW}px`;
         block.style.height = `${newH}px`;
-        applyImageCrop(block);
 
-        const wInput = document.getElementById("imgBlockWidth");
-        const hInput = document.getElementById("imgBlockHeight");
-        if (wInput) wInput.value = newW;
-        if (hInput) hInput.value = newH;
+        const sizeInput = document.getElementById("imgBlockSize");
+        if (sizeInput) sizeInput.value = newW;
     });
 
     const endResize = (e) => {
@@ -1146,55 +1082,6 @@ function attachImageBlockInteractions(block) {
     };
     handle.addEventListener("pointerup", endResize);
     handle.addEventListener("pointercancel", endResize);
-
-    // ---- 사진 위 드래그 = 크롭 위치(팬) 이동 ----
-    let panning = false;
-    let panStartX, panStartY, startPosX, startPosY;
-
-    block.addEventListener("pointerdown", (e) => {
-        if (!block.classList.contains("selected")) return;
-        const { maxX, maxY } = getMaxPan(block);
-        if (maxX <= 0 && maxY <= 0) return;
-        e.preventDefault();
-        panning = true;
-        try { block.setPointerCapture(e.pointerId); } catch (err) {}
-        panStartX = e.clientX;
-        panStartY = e.clientY;
-        startPosX = parseFloat(block.dataset.posX) || 50;
-        startPosY = parseFloat(block.dataset.posY) || 50;
-    });
-
-    block.addEventListener("pointermove", (e) => {
-        if (!panning) return;
-        e.preventDefault();
-        const { maxX, maxY } = getMaxPan(block);
-        const dx = e.clientX - panStartX;
-        const dy = e.clientY - panStartY;
-        let newPosX = startPosX;
-        let newPosY = startPosY;
-        if (maxX > 0) newPosX = startPosX + (dx * 50) / maxX;
-        if (maxY > 0) newPosY = startPosY + (dy * 50) / maxY;
-        newPosX = Math.min(100, Math.max(0, newPosX));
-        newPosY = Math.min(100, Math.max(0, newPosY));
-
-        block.dataset.posX = newPosX;
-        block.dataset.posY = newPosY;
-        applyImageCrop(block);
-
-        const xInput = document.getElementById("imgBlockPosX");
-        const yInput = document.getElementById("imgBlockPosY");
-        if (xInput) xInput.value = Math.round(newPosX);
-        if (yInput) yInput.value = Math.round(newPosY);
-    });
-
-    const endPan = (e) => {
-        if (!panning) return;
-        panning = false;
-        try { block.releasePointerCapture(e.pointerId); } catch (err) {}
-        updateCanvas();
-    };
-    block.addEventListener("pointerup", endPan);
-    block.addEventListener("pointercancel", endPan);
 }
 
 function insertImageBlock(dataURL, naturalW, naturalH) {
@@ -1209,19 +1096,13 @@ function insertImageBlock(dataURL, naturalW, naturalH) {
     const block = document.createElement("div");
     block.className = "editor-image-block";
     block.setAttribute("contenteditable", "false");
-    block.dataset.fit = "cover";
     block.dataset.align = "center";
-    block.dataset.lockRatio = "0";
     block.dataset.naturalRatio = naturalW && naturalH ? (naturalW / naturalH).toFixed(6) : "1";
     block.style.width = `${w}px`;
     block.style.height = `${h}px`;
     block.style.borderRadius = "0px";
-    block.dataset.zoom = "100";
-    block.dataset.posX = "50";
-    block.dataset.posY = "50";
     block.dataset.originalSrc = dataURL;
     block.dataset.cropRect = JSON.stringify({ x: 0, y: 0, w: 100, h: 100 });
-    block.dataset.cropAspect = "free";
     applyImageAlign(block, "center");
 
     const img = document.createElement("img");
@@ -1229,8 +1110,6 @@ function insertImageBlock(dataURL, naturalW, naturalH) {
     img.alt = "";
     img.draggable = false;
     img.style.objectFit = "cover";
-    img.style.transformOrigin = "50% 50%";
-    img.style.transform = "scale(1)";
     block.appendChild(img);
 
     const handle = document.createElement("div");
@@ -1270,7 +1149,7 @@ function insertImageBlock(dataURL, naturalW, naturalH) {
 }
 
 /* =========================================================
-   사진 자르기(크롭) 오버레이 — 아이폰 갤러리 스타일 자유 크롭
+   사진 자르기(크롭) 오버레이 — 이동 + 크기 슬라이더 (비율은 항상 고정)
    ========================================================= */
 let cropTargetBlock = null;
 let cropNaturalW = 0;
@@ -1279,14 +1158,8 @@ let cropImgLeft = 0;
 let cropImgTop = 0;
 let cropImgW = 0;
 let cropImgH = 0;
-let cropAspectMode = "free"; // "free" | "1:1" | "original"
+let cropFixedAspect = 1; // 자르기 박스의 가로/세로 비율 (블록의 현재 박스 비율로 고정)
 let cropBoxRect = { x1: 0, y1: 0, x2: 0, y2: 0 }; // 스테이지 좌표계(px), 절대값
-
-function getCropAspectRatio() {
-    if (cropAspectMode === "1:1") return 1;
-    if (cropAspectMode === "original") return cropNaturalW / cropNaturalH || 1;
-    return null;
-}
 
 function clampNum(v, min, max) {
     return Math.min(max, Math.max(min, v));
@@ -1378,26 +1251,22 @@ function getCropBoxPercent() {
     return { x, y, w: wPct, h: hPct };
 }
 
-function setCropAspectUI(mode) {
-    cropAspectMode = mode;
-    document.querySelectorAll("#cropAspectGroup button").forEach((b) => {
-        b.classList.toggle("active", b.getAttribute("data-aspect") === mode);
-    });
-    const aspect = getCropAspectRatio();
-    if (!aspect) return;
+// 고정 비율(cropFixedAspect)을 유지하면서 이미지 안에 들어가는 최대 박스 크기
+function getMaxCropBoxSize() {
+    let w = cropImgW;
+    let h = w / cropFixedAspect;
+    if (h > cropImgH) {
+        h = cropImgH;
+        w = h * cropFixedAspect;
+    }
+    return { w, h };
+}
 
+// 중심점을 유지한 채 새 너비/높이로 박스 크기를 바꾸고, 이미지 경계를 벗어나면 밀어서 안쪽으로 맞춤
+function setCropBoxSizeKeepingCenter(newW, newH) {
     const bounds = { left: cropImgLeft, top: cropImgTop, right: cropImgLeft + cropImgW, bottom: cropImgTop + cropImgH };
     const centerX = (cropBoxRect.x1 + cropBoxRect.x2) / 2;
     const centerY = (cropBoxRect.y1 + cropBoxRect.y2) / 2;
-    const curH = Math.abs(cropBoxRect.y2 - cropBoxRect.y1);
-
-    let newW = Math.min(cropImgW, curH * aspect);
-    let newH = newW / aspect;
-    if (newH > cropImgH) {
-        newH = cropImgH;
-        newW = newH * aspect;
-    }
-
     let x1 = centerX - newW / 2;
     let x2 = centerX + newW / 2;
     let y1 = centerY - newH / 2;
@@ -1412,14 +1281,27 @@ function setCropAspectUI(mode) {
     renderCropBox();
 }
 
+function applyCropSizeSlider(percentValue) {
+    const maxSize = getMaxCropBoxSize();
+    const newW = Math.max(20, maxSize.w * (percentValue / 100));
+    const newH = newW / cropFixedAspect;
+    setCropBoxSizeKeepingCenter(newW, newH);
+}
+
 function openCropTool(block) {
     const overlay = document.getElementById("cropOverlay");
     const stageImg = document.getElementById("cropStageImg");
+    const sizeRange = document.getElementById("cropSizeRange");
     if (!overlay || !stageImg) return;
     cropTargetBlock = block;
     const originalSrc = block.dataset.originalSrc || block.querySelector("img").src;
 
+    cropFixedAspect = (block.offsetWidth && block.offsetHeight)
+        ? block.offsetWidth / block.offsetHeight
+        : parseFloat(block.dataset.naturalRatio) || 1;
+
     overlay.style.display = "flex";
+    document.body.classList.add("crop-open");
 
     stageImg.onload = () => {
         cropNaturalW = stageImg.naturalWidth;
@@ -1433,7 +1315,11 @@ function openCropTool(block) {
         }
         if (!rectPct || typeof rectPct.w !== "number") rectPct = { x: 0, y: 0, w: 100, h: 100 };
         setCropBoxFromPercent(rectPct);
-        setCropAspectUI(block.dataset.cropAspect || "free");
+
+        const maxSize = getMaxCropBoxSize();
+        const curW = Math.abs(cropBoxRect.x2 - cropBoxRect.x1);
+        const sliderVal = Math.round(clampNum((curW / maxSize.w) * 100, 20, 100));
+        if (sizeRange) sizeRange.value = sliderVal;
     };
     stageImg.src = originalSrc;
 }
@@ -1441,6 +1327,7 @@ function openCropTool(block) {
 function closeCropTool() {
     const overlay = document.getElementById("cropOverlay");
     if (overlay) overlay.style.display = "none";
+    document.body.classList.remove("crop-open");
     cropTargetBlock = null;
 }
 
@@ -1472,11 +1359,15 @@ function applyCropTool() {
         if (img) img.src = croppedDataURL;
         block.dataset.naturalRatio = (sw / sh).toFixed(6);
         block.dataset.cropRect = JSON.stringify(rectPct);
-        block.dataset.cropAspect = cropAspectMode;
-        block.dataset.zoom = "100";
-        block.dataset.posX = "50";
-        block.dataset.posY = "50";
-        applyImageCrop(block);
+
+        // 박스 비율을 잘라낸 이미지 비율과 항상 일치시킴 (너비 유지, 높이만 재계산)
+        const curW = parseInt(block.style.width, 10) || block.offsetWidth || 240;
+        const newH = Math.max(20, Math.round(curW / (sw / sh)));
+        block.style.height = `${newH}px`;
+
+        const sizeInput = document.getElementById("imgBlockSize");
+        if (sizeInput) sizeInput.value = curW;
+
         updateCanvas();
         closeCropTool();
     };
@@ -1484,19 +1375,19 @@ function applyCropTool() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    const cropStage = document.getElementById("cropStage");
     const cropBox = document.getElementById("cropBox");
     const btnCropCancel = document.getElementById("btnCropCancel");
     const btnCropApply = document.getElementById("btnCropApply");
+    const cropSizeRange = document.getElementById("cropSizeRange");
 
     if (btnCropCancel) btnCropCancel.addEventListener("click", closeCropTool);
     if (btnCropApply) btnCropApply.addEventListener("click", applyCropTool);
 
-    document.querySelectorAll("#cropAspectGroup button").forEach((btn) => {
-        btn.addEventListener("click", () => {
-            setCropAspectUI(btn.getAttribute("data-aspect"));
+    if (cropSizeRange) {
+        cropSizeRange.addEventListener("input", () => {
+            applyCropSizeSlider(parseFloat(cropSizeRange.value) || 100);
         });
-    });
+    }
 
     window.addEventListener("resize", () => {
         const overlay = document.getElementById("cropOverlay");
@@ -1506,17 +1397,14 @@ document.addEventListener("DOMContentLoaded", () => {
         setCropBoxFromPercent(prevPct);
     });
 
+    // ---- 크롭 박스는 드래그로 "이동"만 가능 (크기는 슬라이더 전용, 비율 고정) ----
     if (cropBox) {
-        const minSize = 32;
-
-        // ---- 크롭 박스 이동 ----
         let moving = false;
         let moveStartX = 0;
         let moveStartY = 0;
         let startRect = null;
 
         cropBox.addEventListener("pointerdown", (e) => {
-            if (e.target.closest(".crop-handle")) return;
             e.preventDefault();
             moving = true;
             try { cropBox.setPointerCapture(e.pointerId); } catch (err) {}
@@ -1533,8 +1421,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const w = Math.abs(startRect.x2 - startRect.x1);
             const h = Math.abs(startRect.y2 - startRect.y1);
             const bounds = { left: cropImgLeft, top: cropImgTop, right: cropImgLeft + cropImgW, bottom: cropImgTop + cropImgH };
-            let newLeft = clampNum(Math.min(startRect.x1, startRect.x2) + dx, bounds.left, bounds.right - w);
-            let newTop = clampNum(Math.min(startRect.y1, startRect.y2) + dy, bounds.top, bounds.bottom - h);
+            const newLeft = clampNum(Math.min(startRect.x1, startRect.x2) + dx, bounds.left, bounds.right - w);
+            const newTop = clampNum(Math.min(startRect.y1, startRect.y2) + dy, bounds.top, bounds.bottom - h);
             cropBoxRect = { x1: newLeft, y1: newTop, x2: newLeft + w, y2: newTop + h };
             renderCropBox();
         });
@@ -1546,72 +1434,9 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         cropBox.addEventListener("pointerup", endMove);
         cropBox.addEventListener("pointercancel", endMove);
-
-        // ---- 모서리 손잡이 = 크롭 영역 크기 조절 ----
-        cropBox.querySelectorAll(".crop-handle").forEach((handle) => {
-            const key = handle.getAttribute("data-handle");
-            let resizing = false;
-
-            handle.addEventListener("pointerdown", (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                resizing = true;
-                try { handle.setPointerCapture(e.pointerId); } catch (err) {}
-            });
-
-            handle.addEventListener("pointermove", (e) => {
-                if (!resizing) return;
-                e.preventDefault();
-                const stage = document.getElementById("cropStage");
-                const rect = stage.getBoundingClientRect();
-                const px = e.clientX - rect.left;
-                const py = e.clientY - rect.top;
-                const bounds = { left: cropImgLeft, top: cropImgTop, right: cropImgLeft + cropImgW, bottom: cropImgTop + cropImgH };
-                const aspect = getCropAspectRatio();
-
-                let anchorX, anchorY;
-                if (key === "tl") { anchorX = cropBoxRect.x2; anchorY = cropBoxRect.y2; }
-                if (key === "tr") { anchorX = cropBoxRect.x1; anchorY = cropBoxRect.y2; }
-                if (key === "bl") { anchorX = cropBoxRect.x2; anchorY = cropBoxRect.y1; }
-                if (key === "br") { anchorX = cropBoxRect.x1; anchorY = cropBoxRect.y1; }
-
-                const movesLeft = key === "tl" || key === "bl";
-                const movesTop = key === "tl" || key === "tr";
-
-                if (!aspect) {
-                    let x1 = movesLeft ? clampNum(px, bounds.left, anchorX - minSize) : anchorX;
-                    let x2 = movesLeft ? anchorX : clampNum(px, anchorX + minSize, bounds.right);
-                    let y1 = movesTop ? clampNum(py, bounds.top, anchorY - minSize) : anchorY;
-                    let y2 = movesTop ? anchorY : clampNum(py, anchorY + minSize, bounds.bottom);
-                    cropBoxRect = { x1, y1, x2, y2 };
-                } else {
-                    const maxWFromBoundsX = movesLeft ? anchorX - bounds.left : bounds.right - anchorX;
-                    const maxHFromBoundsY = movesTop ? anchorY - bounds.top : bounds.bottom - anchorY;
-                    const maxWFromH = maxHFromBoundsY * aspect;
-                    const effectiveMaxW = Math.max(minSize, Math.min(maxWFromBoundsX, maxWFromH));
-                    const desiredW = Math.abs(px - anchorX);
-                    const newW = clampNum(desiredW, minSize, effectiveMaxW);
-                    const newH = newW / aspect;
-
-                    let x1 = movesLeft ? anchorX - newW : anchorX;
-                    let x2 = movesLeft ? anchorX : anchorX + newW;
-                    let y1 = movesTop ? anchorY - newH : anchorY;
-                    let y2 = movesTop ? anchorY : anchorY + newH;
-                    cropBoxRect = { x1, y1, x2, y2 };
-                }
-                renderCropBox();
-            });
-
-            const endResize = (e) => {
-                if (!resizing) return;
-                resizing = false;
-                try { handle.releasePointerCapture(e.pointerId); } catch (err) {}
-            };
-            handle.addEventListener("pointerup", endResize);
-            handle.addEventListener("pointercancel", endResize);
-        });
     }
 });
+
 
 document.addEventListener("DOMContentLoaded", () => {
     const btnInsertImage = document.getElementById("btnInsertImage");
@@ -1658,14 +1483,10 @@ document.addEventListener("DOMContentLoaded", () => {
         deselectImageBlock();
     });
 
-    ["imgBlockWidth", "imgBlockHeight", "imgBlockFit", "imgBlockRadius"].forEach((id) => {
+    ["imgBlockSize", "imgBlockRadius"].forEach((id) => {
         const el = document.getElementById(id);
         if (!el) return;
-        el.addEventListener("input", () => {
-            if (id === "imgBlockWidth") applyLockedRatio("width");
-            if (id === "imgBlockHeight") applyLockedRatio("height");
-            applyPanelToBlock();
-        });
+        el.addEventListener("input", applyPanelToBlock);
         el.addEventListener("change", applyPanelToBlock);
     });
 
@@ -1687,25 +1508,15 @@ document.addEventListener("DOMContentLoaded", () => {
             const img = block.querySelector("img");
             if (img) img.src = originalSrc;
             block.dataset.cropRect = JSON.stringify({ x: 0, y: 0, w: 100, h: 100 });
-            block.dataset.cropAspect = "free";
-            block.dataset.zoom = "100";
-            block.dataset.posX = "50";
-            block.dataset.posY = "50";
             const tempImg = new Image();
             tempImg.onload = () => {
                 block.dataset.naturalRatio = (tempImg.naturalWidth / tempImg.naturalHeight).toFixed(6);
-                applyImageCrop(block);
+                const w = parseInt(block.style.width, 10) || block.offsetWidth || 240;
+                const h = Math.max(20, Math.round(w / parseFloat(block.dataset.naturalRatio)));
+                block.style.height = `${h}px`;
                 updateCanvas();
             };
             tempImg.src = originalSrc;
-        });
-    }
-
-    const lockRatioEl = document.getElementById("imgBlockLockRatio");
-    if (lockRatioEl) {
-        lockRatioEl.addEventListener("change", function () {
-            if (!currentImageBlock) return;
-            currentImageBlock.dataset.lockRatio = this.checked ? "1" : "0";
         });
     }
 
@@ -1714,7 +1525,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!currentImageBlock) return;
             const prop = btn.getAttribute("data-img-step");
             const step = parseInt(btn.getAttribute("data-step"), 10) || 0;
-            const inputId = prop === "width" ? "imgBlockWidth" : prop === "height" ? "imgBlockHeight" : "imgBlockRadius";
+            const inputId = prop === "size" ? "imgBlockSize" : "imgBlockRadius";
             const input = document.getElementById(inputId);
             if (!input) return;
             const minVal = prop === "radius" ? 0 : 20;
