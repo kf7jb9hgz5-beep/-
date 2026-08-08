@@ -136,22 +136,13 @@
                             <option value="fill">늘리기 (비율 무시)</option>
                         </select>
                     </div>
-                    <div class="panel-section-title" style="margin-top: 10px; padding-top: 0; border-top: none">사진 크롭 (확대 · 위치)</div>
-                    <div class="field-hint">사진을 선택한 상태에서 우측 하단 손잡이를 끌면 크기가, 사진을 직접 끌면(확대된 경우) 보이는 위치가 바뀌어요.</div>
+                    <div class="panel-section-title" style="margin-top: 10px; padding-top: 0; border-top: none">사진 자르기</div>
+                    <div class="field-hint">사진 전체를 보면서 자를 영역을 손가락(또는 마우스)으로 자유롭게 조절할 수 있어요.</div>
                     <div class="control-minimal-row">
-                        <label for="imgBlockZoom">확대 (%)</label>
-                        <input type="range" id="imgBlockZoom" min="100" max="300" step="5" value="100" />
+                        <button type="button" id="btnOpenCrop" class="btn-minimal-save" style="width: 100%">사진 자르기</button>
                     </div>
                     <div class="control-minimal-row">
-                        <label for="imgBlockPosX">가로 위치</label>
-                        <input type="range" id="imgBlockPosX" min="0" max="100" value="50" />
-                    </div>
-                    <div class="control-minimal-row">
-                        <label for="imgBlockPosY">세로 위치</label>
-                        <input type="range" id="imgBlockPosY" min="0" max="100" value="50" />
-                    </div>
-                    <div class="control-minimal-row">
-                        <button type="button" id="btnResetCrop" class="btn-minimal-save" style="width: 100%">크롭 초기화</button>
+                        <button type="button" id="btnResetCrop" class="text-danger" style="width: 100%">원본으로 되돌리기</button>
                     </div>
                     <div class="control-minimal-row">
                         <label>정렬</label>
@@ -594,6 +585,38 @@
                 <button class="btn-export primary" id="btnSave">저장</button>
             </div>
         </nav>
+
+        <div class="crop-overlay" id="cropOverlay" style="display: none">
+            <div class="crop-overlay-header">
+                <button type="button" id="btnCropCancel" class="crop-header-btn">취소</button>
+                <span>사진 자르기</span>
+                <button type="button" id="btnCropApply" class="crop-header-btn crop-header-btn-primary">적용</button>
+            </div>
+            <div class="crop-stage" id="cropStage">
+                <img id="cropStageImg" alt="" draggable="false" />
+                <div class="crop-dim crop-dim-top"></div>
+                <div class="crop-dim crop-dim-bottom"></div>
+                <div class="crop-dim crop-dim-left"></div>
+                <div class="crop-dim crop-dim-right"></div>
+                <div class="crop-box" id="cropBox">
+                    <div class="crop-grid-line crop-grid-v1"></div>
+                    <div class="crop-grid-line crop-grid-v2"></div>
+                    <div class="crop-grid-line crop-grid-h1"></div>
+                    <div class="crop-grid-line crop-grid-h2"></div>
+                    <div class="crop-handle crop-handle-tl" data-handle="tl"></div>
+                    <div class="crop-handle crop-handle-tr" data-handle="tr"></div>
+                    <div class="crop-handle crop-handle-bl" data-handle="bl"></div>
+                    <div class="crop-handle crop-handle-br" data-handle="br"></div>
+                </div>
+            </div>
+            <div class="crop-overlay-footer">
+                <div class="segmented-control" id="cropAspectGroup">
+                    <button type="button" data-aspect="free" class="active">자유</button>
+                    <button type="button" data-aspect="1:1">정사각형</button>
+                    <button type="button" data-aspect="original">원본</button>
+                </div>
+            </div>
+        </div>
 
         <script src="presets.js"></script>
         <script src="script.js"></script>

@@ -1201,3 +1201,148 @@ input[type="file"]::file-selector-button {
     position: relative;
     z-index: 2;
 }
+
+/* ---- 사진 자르기(크롭) 오버레이 ---- */
+.crop-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: #000000;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    touch-action: none;
+}
+
+.crop-overlay-header {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 6px;
+    color: #ffffff;
+}
+
+.crop-overlay-header span {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.crop-header-btn {
+    background: none;
+    border: none;
+    color: #e2e8f0;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+}
+
+.crop-header-btn:active {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.crop-header-btn-primary {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.crop-stage {
+    position: relative;
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.crop-stage img {
+    position: absolute;
+    max-width: none;
+    max-height: none;
+    user-select: none;
+    -webkit-user-drag: none;
+    pointer-events: none;
+}
+
+.crop-dim {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+}
+
+.crop-box {
+    position: absolute;
+    border: 1.5px solid #ffffff;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
+    touch-action: none;
+    cursor: move;
+}
+
+.crop-grid-line {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.35);
+    pointer-events: none;
+}
+
+.crop-grid-v1,
+.crop-grid-v2 {
+    top: 0;
+    bottom: 0;
+    width: 1px;
+}
+.crop-grid-v1 { left: 33.333%; }
+.crop-grid-v2 { left: 66.666%; }
+
+.crop-grid-h1,
+.crop-grid-h2 {
+    left: 0;
+    right: 0;
+    height: 1px;
+}
+.crop-grid-h1 { top: 33.333%; }
+.crop-grid-h2 { top: 66.666%; }
+
+.crop-handle {
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    touch-action: none;
+    z-index: 5;
+}
+
+.crop-handle::before {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.crop-handle-tl { top: -13px; left: -13px; cursor: nwse-resize; }
+.crop-handle-tr { top: -13px; right: -13px; cursor: nesw-resize; }
+.crop-handle-bl { bottom: -13px; left: -13px; cursor: nesw-resize; }
+.crop-handle-br { bottom: -13px; right: -13px; cursor: nwse-resize; }
+
+.crop-overlay-footer {
+    flex: 0 0 auto;
+    padding: 14px;
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+}
+
+.crop-overlay-footer .segmented-control {
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.crop-overlay-footer .segmented-control button {
+    color: #cbd5e1;
+}
+
+.crop-overlay-footer .segmented-control button.active {
+    background-color: #ffffff;
+    color: #0f172a;
+}
